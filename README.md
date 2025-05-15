@@ -2,7 +2,7 @@ This mapping allows using the VESTAX VCI-380 controller with Mixxx DJ software.
 I would appreciate any feedback, suggestions for changes or improvement.
 
 # How to install
-- Copy the 2 files Vestax_VCI-380_MIDI_1.midi.xml and Vestax-VCI-380-scripts.js to the "Controllers" folder of Mixxx:
+- Copy the 2 files `Vestax_VCI-380.midi.xml` and `Vestax-VCI-380-scripts.js` to the "Controllers" folder of Mixxx:
 
 |OS|Folder location|
 |---|---|
@@ -19,8 +19,9 @@ If it's correctly set up, all the controller lights will quickly flash on Mixxx 
 
 ## Mixer functions
 
-Main knobs and sliders work straightforward.
-Use <kbd>SHIFT</kbd>+crossfader to controle output balance
+Main knobs and sliders work straightforward.  
+Hold <kbd>SHIFT</kbd> while turning EQ knobs (<kbd>HIGH</kbd> <kbd>MID</kbd> <kbd>LOW</kbd> for EQ kill mode  
+Hold <kbd>SHIFT</kbd> while moving the crossfader to control output balance  
 
 ## Wheels
 
@@ -40,36 +41,35 @@ Get sure that <kbd>TOUCH SENSOR ADJ</kbd> knobs on the front panel are correctly
 |<kbd>SHIFT</kbd> + <kbd>CUE</kbd>|set the cue point|
 |<kbd>SYNC</kbd>|blinks on each beat. Press to adjust beatgrid position.|
 |<kbd>SHIFT</kbd>+<kbd>SYNC</kbd>|activates auto-sync|
+|<kbd>VINYL</kbd>|toggles slip mode|
 
 
 ## "Tempo" sliders (pitch)
 
 The sliders adjust pitch  
-<kbd>SHIFT</kbd> + move slider : reset speed to 1X  
-<kbd>RANGE</kbd> : toggle keylock  
+<kbd>SHIFT</kbd> + move slider: reset speed to 1X  
 <kbd>SHIFT</kbd> + move slider to topmost position ("-"): brake effect  
+<kbd>SHIFT</kbd> + <kbd>RANGE</kbd>: toggle keylock  
+<kbd>RANGE</kbd>: toggle quantization 
 
 ## Navigation area
 
 ### Library
-Turn the <kbd>SCROLL</kbd> knob to scroll  
-Toggle <kbd>BACK</kbd> to select scroll zone : ON = left panel, OFF = tracklist  
-<kbd>FWD</kbd> : fold/unfold subdirectories  
-<kbd>JOGSCROLL</kbd>+<kbd>LOAD A</kbd> / <kbd>LOAD B</kbd> : Load the track into deck A or B  
 
-### Preview deck
-Push the <kbd>SCROLL</kbd> knob to load and play a track into preview deck 
-<kbd>VIEW</kbd> : play/pause preview deck  
+<kbd>SCROLL</kbd> turn: move up/down  
+<kbd>BACK</kbd> and <kbd>FWD</kbd>: move left/right  
+<kbd>AREA</kbd>: Action button  
+<kbd>SCROLL</kbd> push: change focus zone (playlists,tracklist,...)  
+<kbd>SORT</kbd>: Sort according to selected column  
+<kbd>JOGSCROLL</kbd>+<kbd>LOAD A</kbd> / <kbd>LOAD B</kbd> : Load selected track into deck A or B  
+<kbd>VIEW</kbd>: Load and play selected track on preview deck. Push again to stop.  
 
-### AutoDJ
-<kbd>AREA</kbd> : Toggle AutoDJ ( think A(rea) as A(utodj) )
+## Quick Effects
 
-## Effects
-
-<kbd>FX SELECT</kbd> : Select an effect 
-<kbd>FX ON/OFF</kbd> : Toggle effect on each deck.  
-<kbd>FX DEPTH</kbd> : adjust wet/dry parameter  
-Adjust other parameters : see "performance pads", effects control
+For both decks:  
+<kbd>FX SELECT</kbd> turn: Select a quick effect preset  
+<kbd>FX ON/OFF</kbd>: Toggle quick effect ON/OFF 
+<kbd>FX DEPTH</kbd> turn: adjust the effect parameter ("superknob")
 
 ## Performance pads and strips
 
@@ -77,7 +77,8 @@ They work in different modes, according to the selection buttons on the top of t
 My modes are not always related to the names they bear on the controller :
 
 ### <kbd>HOT CUE</kbd> mode : HOTCUES
-8 hot cues available, one per pad. The pads will light up when their hotcue is set
+8 hot cues available, one per pad. The pads will light up when their hotcue is set.  
+the colors of the lights will approximate the colors defined for the hot cues.  
 - push a lighted pad to play the hotcue
 - push a blank pad to set a new hotcue to the current position.
 - push <kbd>SHIFT</kbd> + lighted pad to clear a hotcue
@@ -96,3 +97,4 @@ not used - suggestions welcome
 not used - suggestions welcome
 ### <kbd>SAMPLER</kbd> mode (<kbd>SHIFT</kbd> + <kbd>HOT CUE</kbd>)
 not used yet - I'm planning to control the samplers from here
+
