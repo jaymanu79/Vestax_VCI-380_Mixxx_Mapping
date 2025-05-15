@@ -2,66 +2,72 @@ This mapping allows using the VESTAX VCI-380 controller with Mixxx DJ software.
 I would appreciate any feedback, suggestions for changes or improvement.
 
 # How to install
-Copy the 2 files Vestax_VCI-380_MIDI_1.midi.xml and Vestax-VCI-380-scripts.js to the "Controllers" folder of Mixxx
-Restart Mixx
-Go to settings / controllers, find your controller and assign the mapping to it.
-If it's correctly set up, all light of the controller will quickly flash on Mixxx startup.
+- Copy the 2 files `Vestax_VCI-380.midi.xml` and `Vestax-VCI-380-scripts.js` to the "Controllers" folder of Mixxx:
+
+|OS|Folder location|
+|---|---|
+|GNU/Linux| `/home/<username>/.mixxx/controllers` |
+|OS X| `/Users/<username>/Library/Containers/org.mixxx.mixxx/Data/Library/Application Support/Mixxx/controllers` |
+|Windows| `C:\Users\<username>\AppData\local\Mixxx\controllers` |
+
+- Restart Mixx
+- Go to settings / controllers, find your controller and assign the mapping to it.
+
+If it's correctly set up, all the controller lights will quickly flash on Mixxx startup.
 
 # How to use the controller with this mapping
 
 ## Mixer functions
 
 Main knobs and sliders work straightforward.
-Use SHIFT+crossfader to controle output balance
+Use <kbd>SHIFT</kbd>+crossfader to controle output balance
 
 ## Wheels
 
 * Touch and turn wheels to activate scratching.
-* With shift, fast scratching at 10X speed
+Get sure that <kbd>TOUCH SENSOR ADJ</kbd> knobs on the front panel are correctly set, or the tracks will refuse to play if Mixxx thinks that a platter is touched! The wheels must turn red when touched, and only then.
+* With <kbd>SHIFT</kbd>, the scratching will be accelerated to 10X speed for fast seeking
 * Turn wheels without touching the sensitive part to make temporary rate adjustments (jog)
-note : wheels should turn red when touched. if not, adjust the touch sensitivity on the front panel.
-* The LED ring shows the play position of the track. It does one revolution for the full length of the track. 
+* The LED rings are simulating a vinyl record spin.
 
 ## <kbd>SYNC</kbd> / <kbd>CUE</kbd> / <kbd>>||</kbd>
 
 |Key|Function|
 |---|---|
-|<kbd>PLAY</kbd>|Play/pause|
-|<kbd>SHIFT</kbd>+<kbd>PLAY</kbd>|reverse play|
+|<kbd>>/\|\|</kbd>|Play/pause|
+|<kbd>SHIFT</kbd>+<kbd>>/\|\|</kbd>|reverse play|
 |<kbd>CUE</kbd>|go to cue point|
 |<kbd>SHIFT</kbd> + <kbd>CUE</kbd>|set the cue point|
 |<kbd>SYNC</kbd>|blinks on each beat. Press to adjust beatgrid position.|
 |<kbd>SHIFT</kbd>+<kbd>SYNC</kbd>|activates auto-sync|
 
 
-## Tempo sliders
+## "Tempo" sliders (pitch)
 
 The sliders adjust pitch  
-<kbd>SHIFT</kbd> + move slider : reset speed to 1X  
-<kbd>RANGE</kbd> : toggle keylock
+<kbd>SHIFT</kbd> + move slider: reset speed to 1X  
+<kbd>SHIFT</kbd> + move slider to topmost position ("-"): brake effect  
+<kbd>SHIFT</kbd> + <kbd>RANGE</kbd>: toggle keylock  
+<kbd>RANGE</kbd>: toggle quantization 
 
 ## Navigation area
 
-Turn the center wheel to scroll 
+### Library
 
-Toggle <kbd>BACK</kbd> to select scroll zone : ON = left panel, OFF = tracklist  
+<kbd>SCROLL</kbd> turn: move up/down  
+<kbd>BACK</kbd> and <kbd>FWD</kbd>: move left/right  
+<kbd>AREA</kbd>: Action button  
+<kbd>SCROLL</kbd> push: change focus zone (playlists,tracklist,...)  
+<kbd>SORT</kbd>: Sort according to selected column  
+<kbd>JOGSCROLL</kbd>+<kbd>LOAD A</kbd> / <kbd>LOAD B</kbd> : Load selected track into deck A or B  
+<kbd>VIEW</kbd>: Load and play selected track on preview deck. Push again to stop.  
 
-<kbd>FWD</kbd> : fold/unfold subdirectories  
+## Quick Effects
 
-JOGSCROLL+<kbd>LOAD A</kbd> / <kbd>LOAD B</kbd> : Load the track into deck A or B  
-
-Push the center wheel to load and play a track into preview deck 
-
-<kbd>VIEW</kbd> : play/pause preview deck  
-
-<kbd>AREA</kbd> : Toggle Auto-DJ ( think A(rea) as A(utodj) )
-
-## Effects
-
-<kbd>FX SELECT</kbd> : Select an effect. Inactive with Mixxx versions up to 1.11, where only one effect is available : Flanger. Other functions below do work, and apply to Flanger.  
-<kbd>FX ON/OFF</kbd> : Toggle effect on each deck.  
-<kbd>FX DEPTH</kbd> : adjust wet/dry parameter  
-Adjust other parameters : see "performance pads", effects control
+For both decks:  
+<kbd>FX SELECT</kbd> turn: Select a quick effect preset  
+<kbd>FX ON/OFF</kbd>: Toggle quick effect ON/OFF 
+<kbd>FX DEPTH</kbd> turn: adjust the effect parameter ("superknob")
 
 ## Performance pads and strips
 
