@@ -23,15 +23,28 @@ shift+scroll: scrollup, scrolldown
 back/fwd: focus ?
 FIX JOG SCROLL
 replace "jog" by scratch
-
+replace connectControl by makeConnection
+Pad FX
+fix hotcue activate on pad 1
  * */
 
 // Color table. Colors are binary RGB, each in 2 variants : normal or dimmed
 VestaxVCI380.padColor = {'OFF':0x00,'BLUE':0x18,'GREEN':0x28,'CYAN':0x38,'RED':0x48,'MAGENTA':0x58,'YELLOW':0x68,'WHITE':0x78,'dimBLUE':0x10,'dimGREEN':0x20,'dimCYAN':0x30,'dimRED':0x40,'dimMAGENTA':0x50,'dimYELLOW':0x60,'dimWHITE':0x70 }
 
+// Color mapper
+VestaxVCI380.ColorMapper = new ColorMapper({
+        0xFF0000: 0x48, // red
+        0x00FF00: 0x28, // green
+        0x0000FF: 0x18, // blue
+	0x00FFFF: 0x38, // cyan
+	0xFF00FF: 0x58, // magenta
+	0xFFFF00: 0x68, // yellow
+	0xFFFFFF: 0x78, // white
+    });
+
 //// COLOR preferences
 //// you can change them to your preference
-VestaxVCI380.hotcueSetColor=VestaxVCI380.padColor["MAGENTA"];
+VestaxVCI380.hotcueSetColor=VestaxVCI380.padColor["MAGENTA"]; // obsolete, now using colored hotcues
 VestaxVCI380.hotcueUnsetColor=VestaxVCI380.padColor["dimBLUE"];
 VestaxVCI380.hotcueActivateColor=VestaxVCI380.padColor["CYAN"];
 VestaxVCI380.hotcueDeleteColor=VestaxVCI380.padColor["RED"];
@@ -40,8 +53,7 @@ VestaxVCI380.FXParamUnsetColor=VestaxVCI380.padColor["OFF"];
 VestaxVCI380.FXParamActiveColor=VestaxVCI380.padColor["YELLOW"];
 VestaxVCI380.FXParamSuperKnobColor=VestaxVCI380.padColor["CYAN"];
 // 'Splash screen' : display a customizable color pattern instead of hot cues when no track is loaded
-// currently my initials :) change them as you like !
-VestaxVCI380.splashScreen = [["OFF","OFF","BLUE","OFF","OFF","BLUE","BLUE","OFF"],["OFF","BLUE","BLUE","BLUE","OFF","BLUE","OFF","BLUE"]];
+VestaxVCI380.splashScreen = [["RED","BLUE","RED","BLUE","BLUE","RED","BLUE","RED"],["GREEN","WHITE","GREEN","WHITE","WHITE","GREEN","WHITE","GREEN"]];
 
 VestaxVCI380.init = function(id,debugging) {
 	
@@ -59,6 +71,8 @@ VestaxVCI380.init = function(id,debugging) {
 	engine.softTakeover("[Channel1]","volume",true);
 	engine.softTakeover("[Channel2]","volume",true);
 	engine.softTakeover("[Master]","crossfader",true);
+	engine.softTakeover("[QuickEffectRack1_[Channel1]","super1",true);
+	engine.softTakeover("[QuickEffectRack1_[Channel2]","super1",true);
  
 	// events connection
 	engine.connectControl("[Channel1]","playposition","VestaxVCI380.updatePlayposition");
@@ -90,17 +104,6 @@ VestaxVCI380.init = function(id,debugging) {
 	// displaying splash screen
 	VestaxVCI380.setPadColorSplash(1);
 	VestaxVCI380.setPadColorSplash(2);
-
-
-	// detecting the effects capabilities of Mixxx
-	// either good old Flanger (upto 1.11), or new effect framework (from 1.12)
-	VestaxVCI380.newEffectsSupported = true; //(engine.getValue ("[Flanger]","IfoDelay") == 0); 
-	
-	
-	// setting LOOP sizes. SHOULD BE SELECTABLE !
-	engine.setValue("[Channel1]","beatjump_size",8); // should be settable
-
-
 	
 	} 
 
@@ -270,9 +273,6 @@ VestaxVCI380.onRate = function (channel, control, value, status) {
 ////
 // BUTTONS
 ////
-VestaxVCI380.onFXToggle  = function (channel, control, value, status) {
-//	engine.setValue("[Channel"+VestaxVCI380.getDeck(channel)+"]","flanger",value==0x7F);
-}
 
 // RANGE button used as key lock
 VestaxVCI380.onRange = function (channel, control, value, status) {
@@ -318,28 +318,12 @@ VestaxVCI380.onFwd = function (channel, control, value, status) {
 }
 
 
-// AREA button controls Auto-DJ
-// Push to toggle autoDJ. Shift-push to fade to next track
-VestaxVCI380.autoDJStatus=false;
-VestaxVCI380.onArea = function (channel, control, value, status) {
-	 if  (value==0x7F) {
-	if (VestaxVCI380.shiftStatus) { // SHIFT + area = next track
-		engine.setValue("[AutoDJ]","fade_now",1);
-	} else { // AREA : toggle auto-DJ
-		VestaxVCI380.autoDJStatus=!VestaxVCI380.autoDJStatus;
-		engine.setValue("[AutoDJ]","enabled",VestaxVCI380.autoDJStatus);
-		VestaxVCI380.setLED(1,VestaxVCI380.LED['AREA'],VestaxVCI380.autoDJStatus );		
-	}
-}
-}
 // SORT button
 VestaxVCI380.onSort = function (channel, control, value, status) {
 	    if  (value==0x7F) {
 			engine.setValue("[Library]","sort_focused_column",1);
 		}
 }
-
-
 
 // LOAD buttons. Must be used with jog scroll, otherwise they act as head cue
 VestaxVCI380.onLoad = function (channel, control, value, status) {
@@ -374,18 +358,11 @@ VestaxVCI380.onStripMode2 = function (channel, control, value, status) {
 	var deck=VestaxVCI380.getDeck(channel);
 	if (VestaxVCI380.currentFXParam[deck]!=0) { // We are editing an FX parameter
 
-		if (!VestaxVCI380.newEffectsSupported) { // old flanger (note : the parameters are common to both decks)
-			var flangerParam=VestaxVCI380.FlangerParameter[VestaxVCI380.currentFXParam[deck]-1];
-			engine.setValue("[Flanger]",flangerParam[0],script.absoluteLin(value,flangerParam[1],flangerParam[2]));	
-		}
-		else { // new effects framework
-
 			if (VestaxVCI380.currentFXParam[deck]==8) {// the SuperKnob
 				engine.setValue("[EffectRack1_EffectUnit"+deck+"]","super1", script.absoluteLin(value,0,1));	
 			} else { // normal non-super knob
 			engine.setParameter("[EffectRack1_EffectUnit"+deck+"_Effect1]",  "parameter"+VestaxVCI380.currentFXParam[deck], script.absoluteLin(value,0,1));
 			}
-		}
 	
 	}
 	
@@ -686,6 +663,7 @@ VestaxVCI380.getDeck = function (channel) {
 // Values taken from Vestax manual, except for JOGSCROLL and PADFX which are undocumented 
 // Most LEDs have 2 instances, one for left-deck and the other for the right. The MIDI channel selects the desired deck.
 // Though browse area leds (area, view, sort, back, fwd, jogscroll) are unique and assigned to deck 1 only
+// FX ON/OFF LED is not addressable, it maintains its own status
 VestaxVCI380.LED = {'SHIFT':12,'SYNC':19,'CUE':22,'PLAY':23,'VINYL':26,'RANGE':27,'AREA':80,'VIEW':81,'SORT':82,'BACK':83,'FWD':79,'JOGSCROLL':'09','PADFX':29 };
 
 // set a LED to ON or OFF, for given deck# (1 for left, 2 for right)
@@ -711,7 +689,6 @@ VestaxVCI380.initLEDs = function () {
 		VestaxVCI380.setLED(1,VestaxVCI380.LED["VINYL"],engine.getValue("[Channel1]","slip_enabled")==1);
 		VestaxVCI380.setLED(2,VestaxVCI380.LED["VINYL"],engine.getValue("[Channel2]","slip_enabled")==1);
 		
-		//VestaxVCI380.setLED(1,VestaxVCI380.LED["SORT"],engine.getValue("[Channel1]","slip_enabled")==1);
 }
 
 ////
@@ -721,6 +698,7 @@ VestaxVCI380.initLEDs = function () {
 // Sets the color of a pad identified by deck# (1-2) and pad# (1-8)
 // color from padCOLOR table
 VestaxVCI380.setPadColor = function (deck,pad,color) {
+	console.log("PAD COLOR deck " + deck + " pad " + pad + " color " + color);
 	midi.sendShortMsg(0x96+deck, 0x3B + pad,color);
 }	
 
@@ -741,13 +719,14 @@ VestaxVCI380.setPadColorAll = function (color) {
 	}
 }	
 
-// Light up the pads of a deck according to which hotcues are set or not
+// Light up the pads of a deck with colors of the hotcues
 VestaxVCI380.setPadColorHotcuesDeck = function (deck) {
 	for (var hotcueNumber=1;hotcueNumber<=8;hotcueNumber++) {
-		if(engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_status") > 0) {
-			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.hotcueSetColor);
-		} else {
+		if(engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_status") != 1) {
 			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B,VestaxVCI380.hotcueUnsetColor);	
+		} else {
+			hotcueColor=engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_color");
+			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.ColorMapper.getValueForNearestColor(hotcueColor));
 		}
 	}
 	
@@ -755,10 +734,11 @@ VestaxVCI380.setPadColorHotcuesDeck = function (deck) {
 
 // Light up the pads of a deck according to which hotcues are set or not
 VestaxVCI380.setPadColorHotcuesOne = function (deck,hotcueNumber) {
-		if(engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_status") > 0 ) {
-			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.hotcueSetColor);
+		if(engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_status") != 1) {
+			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.hotcueUnsetColor);
 		} else {
-			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B,VestaxVCI380.hotcueUnsetColor);	
+			hotcueColor=engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_color");
+			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.ColorMapper.getValueForNearestColor(hotcueColor));	
 		}
 }	
 

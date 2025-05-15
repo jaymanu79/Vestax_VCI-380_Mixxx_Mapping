@@ -19,8 +19,9 @@ If it's correctly set up, all the controller lights will quickly flash on Mixxx 
 
 ## Mixer functions
 
-Main knobs and sliders work straightforward.
-Use <kbd>SHIFT</kbd>+crossfader to controle output balance
+Main knobs and sliders work straightforward.  
+Hold <kbd>SHIFT</kbd> while turning EQ knobs (<kbd>HIGH</kbd> <kbd>MID</kbd> <kbd>LOW</kbd> for EQ kill mode  
+Hold <kbd>SHIFT</kbd> while moving the crossfader to control output balance  
 
 ## Wheels
 
@@ -40,6 +41,8 @@ Get sure that <kbd>TOUCH SENSOR ADJ</kbd> knobs on the front panel are correctly
 |<kbd>SHIFT</kbd> + <kbd>CUE</kbd>|set the cue point|
 |<kbd>SYNC</kbd>|blinks on each beat. Press to adjust beatgrid position.|
 |<kbd>SHIFT</kbd>+<kbd>SYNC</kbd>|activates auto-sync|
+|<kbd>VINYL</kbd>|toggles slip mode|
+
 
 
 ## "Tempo" sliders (pitch)
@@ -75,7 +78,8 @@ They work in different modes, according to the selection buttons on the top of t
 My modes are not always related to the names they bear on the controller :
 
 ### <kbd>HOT CUE</kbd> mode : HOTCUES
-8 hot cues available, one per pad. The pads will light up when their hotcue is set
+8 hot cues available, one per pad. The pads will light up when their hotcue is set.  
+the colors of the lights will approximate the colors defined for the hot cues.  
 - push a lighted pad to play the hotcue
 - push a blank pad to set a new hotcue to the current position.
 - push <kbd>SHIFT</kbd> + lighted pad to clear a hotcue

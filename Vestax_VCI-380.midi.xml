@@ -778,24 +778,6 @@
             </control>
             <control>
                 <group>[Channel1]</group>
-                <key>VestaxVCI380.onStripMode5</key>
-                <status>0xB7</status>
-                <midino>0x3C</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            <control>
-                <group>[Channel2]</group>
-                <key>VestaxVCI380.onStripMode5</key>
-                <status>0xB8</status>
-                <midino>0x3C</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            <control>
-                <group>[Channel1]</group>
                 <key>VestaxVCI380.onLoad</key>
                 <status>0x97</status>
                 <midino>0x0A</midino>
@@ -930,15 +912,6 @@
                 </options>
             </control>
             <control>
-                <group>[Channel2]</group>
-                <key>VestaxVCI380.onFXToggle</key>
-                <status>0xB8</status>
-                <midino>0x0D</midino>
-                <options>
-                    <normal/>
-                </options>
-            </control>
-            <control>
                 <group>[Channel1]</group>
                 <key>VestaxVCI380.onPadFXPush</key>
                 <status>0x97</status>
@@ -977,15 +950,6 @@
             <control>
                 <group>[Channel1]</group>
                 <key>VestaxVCI380.onFXOnOff</key>
-                <status>0x97</status>
-                <midino>0x1C</midino>
-                <options>
-                    <script-binding/>
-                </options>
-            </control>
-            <control>
-                <group>[Channel1]</group>
-                <key>VestaxVCI380.onFXToggle</key>
                 <status>0x97</status>
                 <midino>0x1C</midino>
                 <options>
