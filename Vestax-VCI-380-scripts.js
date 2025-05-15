@@ -22,6 +22,7 @@ better loops
 shift+scroll: scrollup, scrolldown
 back/fwd: focus ?
 FIX JOG SCROLL
+replace "jog" by scratch
 
  * */
 
@@ -50,7 +51,7 @@ VestaxVCI380.init = function(id,debugging) {
 	
 	// Set the samplerate to 48KHz, the only rate working for the 380
 	// (You might want to remove this line if you are not using the 380 built-in soundcard)
-	engine.setValue("[Master]","samplerate",48000);
+	engine.setValue("[App]","samplerate",48000);
 	
 	// soft takeover
 //	engine.softTakeover("[Channel1]","rate",true);
@@ -161,6 +162,7 @@ VestaxVCI380.wheelTurn = function (channel, control, value, status) {
 					}
 				} else {
 					// jog
+					// OBSOLETE : should use scratch
 				engine.setValue("[Channel"+deck+"]","jog", script.absoluteLin(value,-3,3));
 				}
 			}
@@ -544,32 +546,32 @@ VestaxVCI380.setPadMode = function (deck, mode) {
 		case 1 :
 			VestaxVCI380.setPadColorHotcuesDeck(deck);
 			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],false);
-			engine.setValue("[EffectRack1]","show",0);
-			engine.setValue("[Samplers]","show_samplers",0);
+			engine.setValue("[Skin]","show_effectrack",0);
+			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 2 :
 			VestaxVCI380.setPadColorFXParamsDeck(deck);
 			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],false);
-			engine.setValue("[EffectRack1]","show",1);
-			engine.setValue("[Samplers]","show_samplers",0);
+			engine.setValue("[Skin]","show_effectrack",1);
+			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 3 :
 			VestaxVCI380.setPadColorLoopMode(deck);
 			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],true);
-			engine.setValue("[EffectRack1]","show",0);
-			engine.setValue("[Samplers]","show_samplers",0);
+			engine.setValue("[Skin]","show_effectrack",0);
+			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 4 :
 			VestaxVCI380.setPadColorSplash(deck);
 			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],false);
-			engine.setValue("[EffectRack1]","show",0);
-			engine.setValue("[Samplers]","show_samplers",0);
+			engine.setValue("[Skin]","show_effectrack",0);
+			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 5 :
 			VestaxVCI380.setPadColorDeck(deck,VestaxVCI380.padColor["MAGENTA"]);
 			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],false);
-			engine.setValue("[EffectRack1]","show",0);
-			engine.setValue("[Samplers]","show_samplers",1);
+			engine.setValue("[Skin]","show_effectrack",0);
+			engine.setValue("[Skin]","show_samplers",1);
 
 			break;
 						
@@ -742,7 +744,7 @@ VestaxVCI380.setPadColorAll = function (color) {
 // Light up the pads of a deck according to which hotcues are set or not
 VestaxVCI380.setPadColorHotcuesDeck = function (deck) {
 	for (var hotcueNumber=1;hotcueNumber<=8;hotcueNumber++) {
-		if(engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_enabled") == 1) {
+		if(engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_status") > 0) {
 			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.hotcueSetColor);
 		} else {
 			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B,VestaxVCI380.hotcueUnsetColor);	
@@ -753,7 +755,7 @@ VestaxVCI380.setPadColorHotcuesDeck = function (deck) {
 
 // Light up the pads of a deck according to which hotcues are set or not
 VestaxVCI380.setPadColorHotcuesOne = function (deck,hotcueNumber) {
-		if(engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_enabled") == 1) {
+		if(engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_status") > 0 ) {
 			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.hotcueSetColor);
 		} else {
 			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B,VestaxVCI380.hotcueUnsetColor);	
