@@ -461,8 +461,8 @@
                 </options>
             </control>
             <control>
-                <group>[PreviewDeck1]</group>
-                <key>LoadSelectedTrackAndPlay</key>
+                <group>[Library]</group>
+                <key>MoveFocusForward</key>
                 <status>0x97</status>
                 <midino>0x54</midino>
                 <options>
@@ -541,6 +541,16 @@
                     <script-binding/>
                 </options>
             </control>
+	    <control>
+                <group>[Playlist]</group>
+                <key>VestaxVCI380.onFwd</key>
+                <status>0x97</status>
+                <midino>0x4F</midino>
+                <options>
+                    <script-binding/>
+                </options>
+        </control>
+
             <control>
                 <group>[Channel1]</group>
                 <key>VestaxVCI380.onPadTap</key>
@@ -624,7 +634,7 @@
             </control>
             <control>
                 <group>[PreviewDeck1]</group>
-                <key>play</key>
+                <key>LoadSelectedTrackAndPlay</key>
                 <status>0x97</status>
                 <midino>0x51</midino>
                 <options>
@@ -650,12 +660,12 @@
                 </options>
             </control>
             <control>
-                <group>[Playlist]</group>
-                <key>VestaxVCI380.onArea</key>
+                <group>[Library]</group>
+                <key>GoToItem</key>
                 <status>0x97</status>
                 <midino>0x50</midino>
                 <options>
-                    <script-binding/>
+                    <button/>
                 </options>
             </control>
             <control>
@@ -686,15 +696,6 @@
                 </options>
             </control>
             <control>
-                <group>[Playlist]</group>
-                <key>ToggleSelectedSidebarItem</key>
-                <status>0x97</status>
-                <midino>0x4F</midino>
-                <options>
-                    <button/>
-                </options>
-            </control>
-            <control>
                 <group>[Channel1]</group>
                 <key>VestaxVCI380.onSelectPadMode</key>
                 <status>0x97</status>
@@ -702,7 +703,7 @@
                 <options>
                     <script-binding/>
                 </options>
-            </control>
+	    </control>
             <control>
                 <group>[Channel2]</group>
                 <key>VestaxVCI380.onSelectPadMode</key>

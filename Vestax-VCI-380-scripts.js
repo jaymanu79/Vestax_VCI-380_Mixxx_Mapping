@@ -15,6 +15,14 @@ function VestaxVCI380() {};
  * 
  * allow beatjump size change. et jump autre que par wheel
  * - better track loaded detection with 2.1
+
+# TO DO
+clone deck
+better loops
+shift+scroll: scrollup, scrolldown
+back/fwd: focus ?
+FIX JOG SCROLL
+
  * */
 
 // Color table. Colors are binary RGB, each in 2 variants : normal or dimmed
@@ -160,11 +168,12 @@ VestaxVCI380.wheelTurn = function (channel, control, value, status) {
 		// JOG scroll in playlist
 			if(++VestaxVCI380.tickCounter >15) {
 				VestaxVCI380.tickCounter=0;
-				if(VestaxVCI380.scrollLeftStatus) {
-					engine.setValue("[Playlist]",value<64 ? "SelectPrevPlaylist" : "SelectNextPlaylist" ,1); }
-				else {
-					engine.setValue("[Playlist]",value<64 ? "SelectPrevTrack" : "SelectNextTrack" ,1); }
-			}
+	//			if(VestaxVCI380.scrollLeftStatus) {
+	//				engine.setValue("[Playlist]",value<64 ? "SelectPrevPlaylist" : "SelectNextPlaylist" ,1); }
+	//			else {
+	//				engine.setValue("[Playlist]",value<64 ? "SelectPrevTrack" : "SelectNextTrack" ,1); }
+	//		
+				}
 	}
 
 }
@@ -193,14 +202,19 @@ VestaxVCI380.onJogScroll = function (channel, control, value, status) {
 // KNOBS
 ////
 VestaxVCI380.onSelectTrackKnob = function (channel, control, value, status) {
-	if(VestaxVCI380.scrollLeftStatus) {
-		if (value==0x7F) { engine.setValue("[Playlist]","SelectPrevPlaylist",1); }
-		else { engine.setValue("[Playlist]","SelectNextPlaylist",1); }	
-	} else {
-		if (value==0x7F) { engine.setValue("[Playlist]","SelectPrevTrack",1); }
-		else { engine.setValue("[Playlist]","SelectNextTrack",1); }	
-		
-	}
+		switch (value) {
+			case 0x7F:
+				engine.setValue("[Library]","MoveVertical",-1);
+				break;
+			case 0x01:
+				engine.setValue("[Library]","MoveVertical",1);
+				break;
+			case 0x7B:
+				engine.setValue("[Library]","ScrollVertical",-1);
+				break
+			case 0x05:
+				engine.setValue("[Library]","ScrollVertical",1);
+		}
 }
 
 //EQs - managed by script in order to enable KILL function with shift
@@ -288,14 +302,19 @@ VestaxVCI380.onVinyl = function (channel, control, value, status) {
 		}
 }
 
-// BACK button set the SCROLL to scroll into left panel (playlists etc.)
-VestaxVCI380.scrollLeftStatus=false;
+// BACK and FWD buttons 
 VestaxVCI380.onBack = function (channel, control, value, status) {
 		if(value==0x7F) {
-		VestaxVCI380.scrollLeftStatus=!VestaxVCI380.scrollLeftStatus;
-		VestaxVCI380.setLED(1,VestaxVCI380.LED['BACK'],VestaxVCI380.scrollLeftStatus );		
+		//VestaxVCI380.setLED(1,VestaxVCI380.LED['BACK'],VestaxVCI380.scrollLeftStatus );		
+		engine.setValue("[Library]","MoveHorizontal",-1);
 	}
 }
+VestaxVCI380.onFwd = function (channel, control, value, status) {
+                if(value==0x7F) {
+                engine.setValue("[Library]","MoveHorizontal",1);
+        }
+}
+
 
 // AREA button controls Auto-DJ
 // Push to toggle autoDJ. Shift-push to fade to next track
@@ -314,7 +333,7 @@ VestaxVCI380.onArea = function (channel, control, value, status) {
 // SORT button
 VestaxVCI380.onSort = function (channel, control, value, status) {
 	    if  (value==0x7F) {
-			engine.setValue("[Library]","AutoDjAdd" + (VestaxVCI380.shiftStatus ? "Top" : "Bottom"),true);
+			engine.setValue("[Library]","sort_focused_column",1);
 		}
 }
 
@@ -610,23 +629,11 @@ VestaxVCI380.onLoopEnabled = function (value,group,control) {
 ////
 
 VestaxVCI380.onFXDepth = function (channel, control, value, status) { 
-		if(VestaxVCI380.newEffectsSupported) {
-	
-			if(VestaxVCI380.shiftStatus) { // while shifted, control the quick-filter
-				engine.setValue("[QuickEffectRack1_[Channel"+VestaxVCI380.getDeck(channel)+"]]","super1", script.absoluteLin(value,0,1));				
-			} else { // unshifted, control the wet/dry of the current effect				
-				engine.setValue("[EffectRack1_EffectUnit"+VestaxVCI380.getDeck(channel)+"]","mix", script.absoluteLin(value,0,1));	
-			}
-		
+		engine.setValue("[QuickEffectRack1_[Channel"+VestaxVCI380.getDeck(channel)+"]]","super1", script.absoluteLin(value,0,1));
 		}
-		
-		else { // old flanger : depth controls depth (both decks at the same time)
-				engine.setValue("[Flanger]","ifoDepth", script.absoluteLin(value,0,1));				
-		}
-}
 
 VestaxVCI380.onFXSelect = function (channel, control, value, status) {
-	engine.setValue("[EffectRack1_EffectUnit"+VestaxVCI380.getDeck(channel)+"]","chain_selector", value == 0x7F ? 1 : -1);	
+	engine.setValue("[QuickEffectRack1_[Channel"+VestaxVCI380.getDeck(channel)+"]]","chain_preset_selector", value == 0x7F ? 1 : -1);	
 	 }
 VestaxVCI380.onFXSelectPush = function (channel, control, value, status) { 
 		engine.setValue("[EffectRack1_EffectUnit"+VestaxVCI380.getDeck(channel)+"]","group_[Channel1]_enable", 1);	
@@ -634,15 +641,7 @@ VestaxVCI380.onFXSelectPush = function (channel, control, value, status) {
 	
 VestaxVCI380.onFXOnOff = function (channel, control, value, status) { 
 		var deck = VestaxVCI380.getDeck(channel);
-
-		if(VestaxVCI380.newEffectsSupported) { // new effects (from v1.12)
-			engine.setValue("[EffectRack1_EffectUnit"+VestaxVCI380.getDeck(channel)+"_Effect1]","enabled", (value == 0x7F) ? 1 : 0);	
-		} 
-		
-		
-		else { // good old flanger
-			engine.setValue("[Channel"+VestaxVCI380.getDeck(channel)+"]","Flanger", value == 0x7F ? 1 : 0);				
-		}
+		engine.setValue("[QuickEffectRack1_[Channel"+VestaxVCI380.getDeck(channel)+"]]","enabled", (value == 0x7F) ? 1 : 0);	
 	 }
 
 // to be deprecated : inventory of the 3 parameters of old flanger effect
