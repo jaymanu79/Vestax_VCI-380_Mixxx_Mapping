@@ -29,6 +29,7 @@ Hold <kbd>SHIFT</kbd> while moving the crossfader to control output balance
 Get sure that <kbd>TOUCH SENSOR ADJ</kbd> knobs on the front panel are correctly set, or the tracks will refuse to play if Mixxx thinks that a platter is touched! The wheels must turn red when touched, and only then.
 * With <kbd>SHIFT</kbd>, the scratching will be accelerated to 10X speed for fast seeking
 * Turn wheels without touching the sensitive part to make temporary rate adjustments (jog)
+* Turn wheels without touching and with <kbd>SHIFT</kbd> pressed to perform beatjumps
 * The LED rings are simulating a vinyl record spin.
 
 ## <kbd>SYNC</kbd> / <kbd>CUE</kbd> / <kbd>>||</kbd>
@@ -77,12 +78,13 @@ For both decks:
 They work in different modes, according to the selection buttons on the top of the controller.
 My modes are not always related to the names they bear on the controller :
 
-### <kbd>HOT CUE</kbd> mode : HOTCUES
+### <kbd>HOT CUE</kbd> mode: HOTCUES
 8 hot cues available, one per pad. The pads will light up when their hotcue is set.  
 the colors of the lights will approximate the colors defined for the hot cues.  
 - push a lighted pad to play the hotcue
 - push a blank pad to set a new hotcue to the current position.
 - push <kbd>SHIFT</kbd> + lighted pad to clear a hotcue
+- loop hotcues: the pad will turn green when the loop is active, push to disable loop
 
 The left strip is used for needle drop (quick navigate) on the preview deck
 To do a needle drop on the main decks, touch the strip with <kbd>SHIFT</kbd>
@@ -92,8 +94,19 @@ parameters for the current effect (see Effects paragraph) are assigned to pads.
 each available parameter appears as a blue pad, and pad 8 is the "SuperKnob" in light blue.  
 push a pad to select a parameter - SuperKnob is the default - and touch the strip to change its value  
 
-### <kbd>AUTO LOOP</kbd> mode
-not used - suggestions welcome
+### <kbd>AUTO LOOP</kbd>: loop mode
+The green buttons on the left control loop activation.  
+- upper (button 1): creates or disables a loop (beatloop_activate)  
+- lower (button 5): reactivates existing loop (reloop_toggle)  
+
+The yellow buttons control beatloop size
+- left (button 3): halves the size
+- right (button 4): doubles the size
+
+The white buttons control the loop position  
+- left (button 7): move left  
+- right (button 8): move right  
+
 ### <kbd>ROLL</kbd> mode
 not used - suggestions welcome
 ### <kbd>SAMPLER</kbd> mode (<kbd>SHIFT</kbd> + <kbd>HOT CUE</kbd>)
