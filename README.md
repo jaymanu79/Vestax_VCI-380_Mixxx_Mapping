@@ -81,9 +81,11 @@ My modes are not always related to the names they bear on the controller :
 the colors of the lights will approximate the colors defined for the hot cues.  
 - push a lighted pad to play the hotcue
 - push a blank pad to set a new hotcue to the current position.
-- push <kbd>SHIFT</kbd> + lighted pad to clear a hotcue
+- push <kbd>SHIFT</kbd> + lighted pad to clear a hotcue  
 
-The left strip is used for needle drop (quick navigate) on the preview deck
+If you changed the hotcues outside of the controller, press <kbd>HOTCUE</kbd> button to refresh the pad colors  
+
+The left strip is used for needle drop (quick navigate) on the preview deck  
 To do a needle drop on the main decks, touch the strip with <kbd>SHIFT</kbd>
 
 ### <kbd>SLICER</kbd> mode : EFFECTS CONTROL
