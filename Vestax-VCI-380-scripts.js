@@ -26,6 +26,7 @@ replace "jog" by scratch
 replace connectControl by makeConnection
 Pad FX
 fix hotcue activate on pad 1
+respect Mixxx coding guidelines
  * */
 
 // Color table. Colors are binary RGB, each in 2 variants : normal or dimmed
@@ -44,7 +45,7 @@ VestaxVCI380.ColorMapper = new ColorMapper({
 
 //// COLOR preferences
 //// you can change them to your preference
-VestaxVCI380.hotcueSetColor=VestaxVCI380.padColor["MAGENTA"]; // obsolete, now using colored hotcues
+VestaxVCI380.hotcueActiveColor=VestaxVCI380.padColor["GREEN"]; 
 VestaxVCI380.hotcueUnsetColor=VestaxVCI380.padColor["dimBLUE"];
 VestaxVCI380.hotcueActivateColor=VestaxVCI380.padColor["CYAN"];
 VestaxVCI380.hotcueDeleteColor=VestaxVCI380.padColor["RED"];
@@ -402,38 +403,31 @@ VestaxVCI380.onPadTap = function (channel, control, value, status) {
 						}
 			    
 			break;
-			
+			//loop_enabled reloop_toggle
 			case 3: // in mode 3 = LOOP
 				 // press pad to control loops
 					switch (padNumber) {				
-						case 1:
-							engine.setValue("[Channel"+deck+"]","loop_move",-0.25);
+						case 1: // activate loop
+							engine.setValue("[Channel"+deck+"]","beatloop_activate",1); 
 							break;
-						case 2:
-							engine.setValue("[Channel"+deck+"]","loop_move",0.25);
+						case 2: // unused
 							break;
-						case 3:
+						case 3: // lower beatloop size
 							engine.setValue("[Channel"+deck+"]","loop_halve",1);
 							break;						
-						case 4:
+						case 4: // raise beatloop size
 							engine.setValue("[Channel"+deck+"]","loop_double",1);
 							break;
-						case 5:
-							engine.setValue("[Channel"+deck+"]","loop_in",1);
-							VestaxVCI380.setPadColor(deck,padNumber,VestaxVCI380.padColor["MAGENTA"]);
+						case 5: // activate reloop
+							engine.setValue("[Channel"+deck+"]","reloop_toggle",1); 
 							break;
-						case 6:
-							engine.setValue("[Channel"+deck+"]","loop_out",1);
-							VestaxVCI380.setPadColor(deck,padNumber,VestaxVCI380.padColor["MAGENTA"]);
+						case 6: // unused
 							break;
-						case 7:
-							if(!VestaxVCI380.shiftStatus) {
-								   engine.setValue("[Channel"+deck+"]","beatloop_activate",1); }
-							else { engine.setValue("[Channel"+deck+"]","beatlooproll_activate",1); }
+						case 7: // move loop left
+							engine.setValue("[Channel"+deck+"]","loop_move",-0.125);
 							break;
-							
-						case 8:
-							engine.setValue("[Channel"+deck+"]","reloop_toggle",1);
+						case 8: // move loop right
+							engine.setValue("[Channel"+deck+"]","loop_move",0.125);
 							break;
 					}
 			    
@@ -461,19 +455,6 @@ VestaxVCI380.onPadTap = function (channel, control, value, status) {
 					//	VestaxVCI380.setPadColor(deck,padNumber,VestaxVCI380.FXParamSetColor);
 					//}
 			break;
-			case 3: // in mode 3 = LOOP
-				 // release pad to control loops
-					switch (padNumber) {				
-						case 5:
-							engine.setValue("[Channel"+deck+"]","loop_in",0);
-							VestaxVCI380.setPadColor(deck,padNumber,VestaxVCI380.padColor["BLUE"]);
-							break;
-						case 6:
-							engine.setValue("[Channel"+deck+"]","loop_out",0);
-							VestaxVCI380.setPadColor(deck,padNumber,VestaxVCI380.padColor["BLUE"]);
-							break;
-					}
-	
 	
 			case 4:
 //			engine.spinback(deck, false); // enable brake effect			
@@ -523,31 +504,26 @@ VestaxVCI380.setPadMode = function (deck, mode) {
 		case 1 :
 			VestaxVCI380.setPadColorHotcuesDeck(deck);
 			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],false);
-			engine.setValue("[Skin]","show_effectrack",0);
 			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 2 :
 			VestaxVCI380.setPadColorFXParamsDeck(deck);
 			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],false);
-			engine.setValue("[Skin]","show_effectrack",1);
 			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 3 :
 			VestaxVCI380.setPadColorLoopMode(deck);
 			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],true);
-			engine.setValue("[Skin]","show_effectrack",0);
 			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 4 :
 			VestaxVCI380.setPadColorSplash(deck);
 			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],false);
-			engine.setValue("[Skin]","show_effectrack",0);
 			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 5 :
 			VestaxVCI380.setPadColorDeck(deck,VestaxVCI380.padColor["MAGENTA"]);
 			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],false);
-			engine.setValue("[Skin]","show_effectrack",0);
 			engine.setValue("[Skin]","show_samplers",1);
 
 			break;
@@ -734,11 +710,14 @@ VestaxVCI380.setPadColorHotcuesDeck = function (deck) {
 
 // Light up the pads of a deck according to which hotcues are set or not
 VestaxVCI380.setPadColorHotcuesOne = function (deck,hotcueNumber) {
-		if(engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_status") != 1) {
+		hotcueStatus=engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_status");
+		if(hotcueStatus == 0) { // unset
 			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.hotcueUnsetColor);
-		} else {
+		} else if (hotcueStatus == 1) { // set
 			hotcueColor=engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_color");
 			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.ColorMapper.getValueForNearestColor(hotcueColor));	
+		} else if (hotcueStatus == 2) { // active
+			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.hotcueActiveColor);
 		}
 }	
 
@@ -775,29 +754,28 @@ VestaxVCI380.setPadColorLoopMode = function (deck) {
 	
 	if (engine.getValue("[Channel"+deck+"]","loop_enabled")) { // loop enabled
 
-			midi.sendShortMsg(0x96+deck, 0x3C ,VestaxVCI380.padColor["CYAN"]);	
-			midi.sendShortMsg(0x96+deck, 0x3D ,VestaxVCI380.padColor["CYAN"]);
+			midi.sendShortMsg(0x96+deck, 0x3C ,VestaxVCI380.padColor["GREEN"]);	
+			midi.sendShortMsg(0x96+deck, 0x3D ,VestaxVCI380.padColor["OFF"]);
 			midi.sendShortMsg(0x96+deck, 0x3E ,VestaxVCI380.padColor["YELLOW"]);
 			midi.sendShortMsg(0x96+deck, 0x3F ,VestaxVCI380.padColor["YELLOW"]);
 				
-			midi.sendShortMsg(0x96+deck, 0x40 ,VestaxVCI380.padColor["BLUE"]);	
-			midi.sendShortMsg(0x96+deck, 0x41 ,VestaxVCI380.padColor["BLUE"]);	
+			midi.sendShortMsg(0x96+deck, 0x40 ,VestaxVCI380.padColor["GREEN"]);	
+			midi.sendShortMsg(0x96+deck, 0x41 ,VestaxVCI380.padColor["OFF"]);	
 			midi.sendShortMsg(0x96+deck, 0x42 ,VestaxVCI380.padColor["WHITE"]);	
-			midi.sendShortMsg(0x96+deck, 0x43 ,VestaxVCI380.padColor["GREEN"]);	
+			midi.sendShortMsg(0x96+deck, 0x43 ,VestaxVCI380.padColor["WHITE"]);	
 
 	}
 	else { // no loop enabled
 
-			midi.sendShortMsg(0x96+deck, 0x3C ,VestaxVCI380.padColor["dimGREEN"]);	
-			midi.sendShortMsg(0x96+deck, 0x3D ,VestaxVCI380.padColor["dimGREEN"]);
-			midi.sendShortMsg(0x96+deck, 0x3E ,VestaxVCI380.padColor["dimYELLOW"]);
-			midi.sendShortMsg(0x96+deck, 0x3F ,VestaxVCI380.padColor["dimYELLOW"]);
+			midi.sendShortMsg(0x96+deck, 0x3C ,VestaxVCI380.padColor["RED"]);	
+			midi.sendShortMsg(0x96+deck, 0x3D ,VestaxVCI380.padColor["OFF"]);
+			midi.sendShortMsg(0x96+deck, 0x3E ,VestaxVCI380.padColor["YELLOW"]);
+			midi.sendShortMsg(0x96+deck, 0x3F ,VestaxVCI380.padColor["YELLOW"]);
 				
-			midi.sendShortMsg(0x96+deck, 0x40 ,VestaxVCI380.padColor["BLUE"]);	
-			midi.sendShortMsg(0x96+deck, 0x41 ,VestaxVCI380.padColor["BLUE"]);	
+			midi.sendShortMsg(0x96+deck, 0x40 ,VestaxVCI380.padColor["RED"]);	
+			midi.sendShortMsg(0x96+deck, 0x41 ,VestaxVCI380.padColor["OFF"]);	
 			midi.sendShortMsg(0x96+deck, 0x42 ,VestaxVCI380.padColor["WHITE"]);	
-		if (engine.getValue("[Channel"+deck+"]","loop_start_position")==-1) {midi.sendShortMsg(0x96+deck, 0x43 ,VestaxVCI380.padColor["OFF"]);} // no loop created yet
-			else {midi.sendShortMsg(0x96+deck, 0x43 ,VestaxVCI380.padColor["RED"]);	} // loop created but OFF
+			midi.sendShortMsg(0x96+deck, 0x43 ,VestaxVCI380.padColor["WHITE"]);	
 
 	}
 }	
