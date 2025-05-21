@@ -19,7 +19,7 @@ function VestaxVCI380() {};
 # TO DO
 clone deck
 replace "jog" by scratch
-replace connectControl by makeConnection
+replace makeConnection by makeConnection
 Pad FX
 fix hotcue activate on pad 1
 respect Mixxx coding guidelines
@@ -66,18 +66,18 @@ VestaxVCI380.init = function(id,debugging) {
 	engine.softTakeover("[QuickEffectRack1_[Channel2]","super1",true);
  
 	// events connection
-	engine.connectControl("[Channel1]","playposition","VestaxVCI380.updatePlayposition");
-	engine.connectControl("[Channel2]","playposition","VestaxVCI380.updatePlayposition");
-	engine.connectControl("[Channel1]","hotcue_1_enabled","VestaxVCI380.onTrackLoaded");// trick for getting notified when a new track is loaded
-	engine.connectControl("[Channel2]","hotcue_1_enabled","VestaxVCI380.onTrackLoaded");// trick for getting notified when a new track is loaded
-	engine.connectControl("[Channel1]","track_loaded","VestaxVCI380.onTrackLoaded");
-	engine.connectControl("[Channel2]","track_loaded","VestaxVCI380.onTrackLoaded");
-	engine.connectControl("[Channel1]","loop_enabled","VestaxVCI380.onLoopEnabled");
-	engine.connectControl("[Channel2]","loop_enabled","VestaxVCI380.onLoopEnabled");
-	engine.connectControl("[Channel1]","quantize","VestaxVCI380.initLEDs");
-	engine.connectControl("[Channel2]","quantize","VestaxVCI380.initLEDs");
-	engine.connectControl("[Channel1]","keylock","VestaxVCI380.initLEDs");
-	engine.connectControl("[Channel2]","keylock","VestaxVCI380.initLEDs"); 
+	engine.makeConnection("[Channel1]","playposition",VestaxVCI380.updatePlayposition);
+	engine.makeConnection("[Channel2]","playposition",VestaxVCI380.updatePlayposition);
+	engine.makeConnection("[Channel1]","hotcue_1_enabled",VestaxVCI380.onTrackLoaded);// trick for getting notified when a new track is loaded
+	engine.makeConnection("[Channel2]","hotcue_1_enabled",VestaxVCI380.onTrackLoaded);// trick for getting notified when a new track is loaded
+	engine.makeConnection("[Channel1]","track_loaded",VestaxVCI380.onTrackLoaded);
+	engine.makeConnection("[Channel2]","track_loaded",VestaxVCI380.onTrackLoaded);
+	engine.makeConnection("[Channel1]","loop_enabled",VestaxVCI380.onLoopEnabled);
+	engine.makeConnection("[Channel2]","loop_enabled",VestaxVCI380.onLoopEnabled);
+	engine.makeConnection("[Channel1]","quantize",VestaxVCI380.initLEDs);
+	engine.makeConnection("[Channel2]","quantize",VestaxVCI380.initLEDs);
+	engine.makeConnection("[Channel1]","keylock",VestaxVCI380.initLEDs);
+	engine.makeConnection("[Channel2]","keylock",VestaxVCI380.initLEDs); 
 
 	// turning off all LEDs
 	VestaxVCI380.setPadColorAll(VestaxVCI380.padColor['OFF']);
@@ -98,11 +98,6 @@ VestaxVCI380.init = function(id,debugging) {
 
 
 VestaxVCI380.shutdown = function(id) {
-	// events disconnection
-	engine.connectControl("[Channel1]","playposition","VestaxVCI380.updatePlayposition",true);
-	engine.connectControl("[Channel2]","playposition","VestaxVCI380.updatePlayposition",true);
-	engine.connectControl("[Channel1]","hotcue_1_enabled","VestaxVCI380.onTrackLoaded",true); 
-	engine.connectControl("[Channel2]","hotcue_1_enabled","VestaxVCI380.onTrackLoaded",true);
 	
 	// turning off all LEDs
 	VestaxVCI380.setPadColorAll(VestaxVCI380.padColor['OFF']);
