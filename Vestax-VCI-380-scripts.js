@@ -18,10 +18,6 @@ function VestaxVCI380() {};
 
 # TO DO
 clone deck
-better loops
-shift+scroll: scrollup, scrolldown
-back/fwd: focus ?
-FIX JOG SCROLL
 replace "jog" by scratch
 replace connectControl by makeConnection
 Pad FX
@@ -49,10 +45,6 @@ VestaxVCI380.hotcueActiveColor=VestaxVCI380.padColor["GREEN"];
 VestaxVCI380.hotcueUnsetColor=VestaxVCI380.padColor["dimBLUE"];
 VestaxVCI380.hotcueActivateColor=VestaxVCI380.padColor["CYAN"];
 VestaxVCI380.hotcueDeleteColor=VestaxVCI380.padColor["RED"];
-VestaxVCI380.FXParamSetColor=VestaxVCI380.padColor["BLUE"];
-VestaxVCI380.FXParamUnsetColor=VestaxVCI380.padColor["OFF"];
-VestaxVCI380.FXParamActiveColor=VestaxVCI380.padColor["YELLOW"];
-VestaxVCI380.FXParamSuperKnobColor=VestaxVCI380.padColor["CYAN"];
 // 'Splash screen' : display a customizable color pattern instead of hot cues when no track is loaded
 VestaxVCI380.splashScreen = [["RED","BLUE","RED","BLUE","BLUE","RED","BLUE","RED"],["GREEN","WHITE","GREEN","WHITE","WHITE","GREEN","WHITE","GREEN"]];
 
@@ -67,8 +59,6 @@ VestaxVCI380.init = function(id,debugging) {
 	engine.setValue("[App]","samplerate",48000);
 	
 	// soft takeover
-//	engine.softTakeover("[Channel1]","rate",true);
-//	engine.softTakeover("[Channel2]","rate",true);
 	engine.softTakeover("[Channel1]","volume",true);
 	engine.softTakeover("[Channel2]","volume",true);
 	engine.softTakeover("[Master]","crossfader",true);
@@ -82,8 +72,6 @@ VestaxVCI380.init = function(id,debugging) {
 	engine.connectControl("[Channel2]","hotcue_1_enabled","VestaxVCI380.onTrackLoaded");// trick for getting notified when a new track is loaded
 	engine.connectControl("[Channel1]","track_loaded","VestaxVCI380.onTrackLoaded");
 	engine.connectControl("[Channel2]","track_loaded","VestaxVCI380.onTrackLoaded");
-	engine.connectControl("[EffectRack1_EffectUnit1_Effect1]","num_parameters","VestaxVCI380.onFXChange");
-	engine.connectControl("[EffectRack1_EffectUnit2_Effect1]","num_parameters","VestaxVCI380.onFXChange");
 	engine.connectControl("[Channel1]","loop_enabled","VestaxVCI380.onLoopEnabled");
 	engine.connectControl("[Channel2]","loop_enabled","VestaxVCI380.onLoopEnabled");
 	engine.connectControl("[Channel1]","quantize","VestaxVCI380.initLEDs");
@@ -174,11 +162,7 @@ VestaxVCI380.wheelTurn = function (channel, control, value, status) {
 		// JOG scroll in playlist
 			if(++VestaxVCI380.tickCounter >15) {
 				VestaxVCI380.tickCounter=0;
-	//			if(VestaxVCI380.scrollLeftStatus) {
-	//				engine.setValue("[Playlist]",value<64 ? "SelectPrevPlaylist" : "SelectNextPlaylist" ,1); }
-	//			else {
-	//				engine.setValue("[Playlist]",value<64 ? "SelectPrevTrack" : "SelectNextTrack" ,1); }
-	//		
+				engine.setValue("[Library]","MoveVertical",value<64 ? -1 : 1);
 				}
 	}
 
@@ -253,7 +237,7 @@ VestaxVCI380.onCrossfader = function (channel, control, value, status) {
 }
 
 // Pitch : The VCI 380 has high resolution (14 bit) pitch controls
-// This part is tricky because it sends this value in 2 sequential MIDI messages : MSB then LSB. So we need to implement a memory. 
+// It sends this value in 2 sequential MIDI messages : MSB then LSB. So we need to implement a memory. 
 VestaxVCI380.rateMSB=[0x00,0x00]; // MSB memory
 VestaxVCI380.onRate = function (channel, control, value, status) {
 	if (VestaxVCI380.shiftStatus) { // SHIFT + pitchfader resets pitch to 0, or triggers braking/softstart if set near min/max
@@ -308,7 +292,6 @@ VestaxVCI380.onVinyl = function (channel, control, value, status) {
 // BACK and FWD buttons 
 VestaxVCI380.onBack = function (channel, control, value, status) {
 		if(value==0x7F) {
-		//VestaxVCI380.setLED(1,VestaxVCI380.LED['BACK'],VestaxVCI380.scrollLeftStatus );		
 		engine.setValue("[Library]","MoveHorizontal",-1);
 	}
 }
@@ -326,7 +309,7 @@ VestaxVCI380.onSort = function (channel, control, value, status) {
 		}
 }
 
-// LOAD buttons. Must be used with jog scroll, otherwise they act as head cue
+// LOAD buttons. Must be used with jog scroll, otherwise they act as headphone cue toggle
 VestaxVCI380.onLoad = function (channel, control, value, status) {
 	if (VestaxVCI380.jogScrollStatus && value==0x7F) { // value 00 when button released would trigger deck clone (double click)
 		engine.setValue("[Channel"+VestaxVCI380.getDeck(channel)+"]","LoadSelectedTrack",1);
@@ -352,23 +335,17 @@ VestaxVCI380.onStripMode1 = function (channel, control, value, status) {
 		engine.setValue("[PreviewDeck1]","playposition",script.absoluteLin(value,0,0.99));
 		}
 }
-	
 
-
+// In modes 2,3 and 4, the strips keep the same functionality as in mode 1
 VestaxVCI380.onStripMode2 = function (channel, control, value, status) {
-	var deck=VestaxVCI380.getDeck(channel);
-	if (VestaxVCI380.currentFXParam[deck]!=0) { // We are editing an FX parameter
-
-			if (VestaxVCI380.currentFXParam[deck]==8) {// the SuperKnob
-				engine.setValue("[EffectRack1_EffectUnit"+deck+"]","super1", script.absoluteLin(value,0,1));	
-			} else { // normal non-super knob
-			engine.setParameter("[EffectRack1_EffectUnit"+deck+"_Effect1]",  "parameter"+VestaxVCI380.currentFXParam[deck], script.absoluteLin(value,0,1));
-			}
-	
-	}
-	
+	VestaxVCI380.onStripMode1(channel, control, value, status);
 }
-
+VestaxVCI380.onStripMode3 = function (channel, control, value, status) {
+	VestaxVCI380.onStripMode1(channel, control, value, status);
+}
+VestaxVCI380.onStripMode4 = function (channel, control, value, status) {
+	VestaxVCI380.onStripMode1(channel, control, value, status);
+}
 
 ////
 // COLOR PADS
@@ -392,18 +369,21 @@ VestaxVCI380.onPadTap = function (channel, control, value, status) {
 			    }
 			break;
 
-			case 2: // in mode 2 = FX PARAMS
-					// PAD pressed = set parameter to use with the strip
-					if((padNumber<=VestaxVCI380.FXParamCount[deck]) || (padNumber==8)) { // only if the parameter exists, or superknob
-						VestaxVCI380.currentFXParam[deck]=padNumber;
-						VestaxVCI380.setPadColorFXParamsDeck(deck);
-					} else { // if unused pad pressed : set active parameter to none
-						VestaxVCI380.currentFXParam[deck]=0;
-						VestaxVCI380.setPadColorFXParamsDeck(deck);
-						}
-			    
+			case 2: // in mode 2 = Beat grid tools
+					switch (padNumber) {
+						case 1: // clone deck
+							engine.setValue("[Channel"+deck+"]","CloneFromDeck",(deck==1 ? 2 : 1));
+							break;
+						case 4: // BPM tap
+							engine.setValue("[Channel"+deck+"]","bpm_tap",1);
+							break;
+						case 8: // BPM tap
+							engine.setValue("[Channel"+deck+"]","beats_translate_curpos",1);
+							break;
+
+					}
 			break;
-			//loop_enabled reloop_toggle
+
 			case 3: // in mode 3 = LOOP
 				 // press pad to control loops
 					switch (padNumber) {				
@@ -430,11 +410,12 @@ VestaxVCI380.onPadTap = function (channel, control, value, status) {
 							engine.setValue("[Channel"+deck+"]","loop_move",0.125);
 							break;
 					}
-			    
 			break;			
-			
+		
+			case 3:
+			break;
+
 			case 4:
-//			engine.spinback(deck, true); // enable brake effect			
 			break;
 			
 		}
@@ -448,16 +429,13 @@ VestaxVCI380.onPadTap = function (channel, control, value, status) {
 				VestaxVCI380.setPadColorHotcuesOne(deck,padNumber);
 				break;
 				
-			case 2: // in mode 2 = FX PARAMS
-					// PAD released = DO NOTHING //stop parameter to use with the strip
-					//if(padNumber<=VestaxVCI380.FXParamCount[deck]) { // only if the parameter exists
-					//	VestaxVCI380.currentFXParam[deck]=0;
-					//	VestaxVCI380.setPadColor(deck,padNumber,VestaxVCI380.FXParamSetColor);
-					//}
+			case 2: // in mode 2 = Beat grid tools
 			break;
 	
+			case 3:
+			break;
+
 			case 4:
-//			engine.spinback(deck, false); // enable brake effect			
 			break;
 
 		}
@@ -468,15 +446,18 @@ VestaxVCI380.onPadTap = function (channel, control, value, status) {
 // PADFX button, select and push
 VestaxVCI380.onPadFXSelect = function (channel, control, value, status) {
 		var deck = VestaxVCI380.getDeck(channel);
-
-		switch(VestaxVCI380.padMode[deck]) {
-			case 3 :
-				engine.setValue("[Channel"+deck+"]","loop_move",value==0x7F ? -0.125 : 0.125);
+		switch(deck) {
+			case 1:
+				engine.setValue("[Library]","MoveVertical",value==0x7f ? -1 : 1);
+				break;
+			case 2:
+				engine.setValue("[Library]","MoveHorizontal",value==0x7f ? -1 : 1);
 				break;
 		}
 }
 
 VestaxVCI380.onPadFXPush = function (channel, control, value, status) {
+	engine.setValue("[Library]","GoToItem",1);
 }
 
 
@@ -503,27 +484,22 @@ VestaxVCI380.setPadMode = function (deck, mode) {
 	switch (mode) { // light up relevant LEDs for a mode
 		case 1 :
 			VestaxVCI380.setPadColorHotcuesDeck(deck);
-			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],false);
 			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 2 :
-			VestaxVCI380.setPadColorFXParamsDeck(deck);
-			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],false);
 			engine.setValue("[Skin]","show_samplers",0);
+			VestaxVCI380.setPadColorBeatGridMode(deck);
 			break;
 		case 3 :
 			VestaxVCI380.setPadColorLoopMode(deck);
-			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],true);
 			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 4 :
 			VestaxVCI380.setPadColorSplash(deck);
-			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],false);
 			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 5 :
 			VestaxVCI380.setPadColorDeck(deck,VestaxVCI380.padColor["MAGENTA"]);
-			VestaxVCI380.setLED(deck,VestaxVCI380.LED['PADFX'],false);
 			engine.setValue("[Skin]","show_samplers",1);
 
 			break;
@@ -556,18 +532,6 @@ VestaxVCI380.onTrackLoaded = function (value, group, control) {
 		}
 }
 
-// for mode 2, refresh effect parameters when a new effect is selected
-VestaxVCI380.onFXChange = function (value, group, control) {
-	var deck=0;
-	if(group=="[EffectRack1_EffectUnit1_Effect1]") { deck=1; }
-	else if(group=="[EffectRack1_EffectUnit2_Effect1]") { deck=2; }
-	if (VestaxVCI380.padMode[deck]==2) {
-		VestaxVCI380.currentFXParam[deck]=8; // defaulting on "superKnob"
-		VestaxVCI380.setPadColorFXParamsDeck(deck);
-
-	}
-}
-
 // for mode 3, refresh colors when a loop is enabled or disabled
 VestaxVCI380.onLoopEnabled = function (value,group,control) {
 	var deck=0;
@@ -598,10 +562,6 @@ VestaxVCI380.onFXOnOff = function (channel, control, value, status) {
 		var deck = VestaxVCI380.getDeck(channel);
 		engine.setValue("[QuickEffectRack1_[Channel"+VestaxVCI380.getDeck(channel)+"]]","enabled", (value == 0x7F) ? 1 : 0);	
 	 }
-
-// to be deprecated : inventory of the 3 parameters of old flanger effect
-// returns a table with control string, min and max values
-VestaxVCI380.FlangerParameter = [ ["IfoDepth",0,1] , ["IfoDelay",50,10000] , ["IfoPeriod",50000,2000000] ];
 
 
 ////
@@ -664,7 +624,13 @@ VestaxVCI380.initLEDs = function () {
 		VestaxVCI380.setLED(4,VestaxVCI380.LED["RANGE"],engine.getValue("[Channel2]","keylock")==1);
 		VestaxVCI380.setLED(1,VestaxVCI380.LED["VINYL"],engine.getValue("[Channel1]","slip_enabled")==1);
 		VestaxVCI380.setLED(2,VestaxVCI380.LED["VINYL"],engine.getValue("[Channel2]","slip_enabled")==1);
-		
+		VestaxVCI380.setLED(1,VestaxVCI380.LED["PADFX"],true);
+		VestaxVCI380.setLED(2,VestaxVCI380.LED["PADFX"],true);
+		// library control
+		VestaxVCI380.setLED(1,VestaxVCI380.LED["AREA"],true);
+		VestaxVCI380.setLED(1,VestaxVCI380.LED["SORT"],true);
+		VestaxVCI380.setLED(1,VestaxVCI380.LED["BACK"],true);
+		VestaxVCI380.setLED(1,VestaxVCI380.LED["FWD"],true);
 }
 
 ////
@@ -721,34 +687,6 @@ VestaxVCI380.setPadColorHotcuesOne = function (deck,hotcueNumber) {
 		}
 }	
 
-// Light up the pads of a deck according to how many effect parameters are available + the SuperKnob
-VestaxVCI380.setPadColorFXParamsDeck = function (deck) {
-	
-		if (VestaxVCI380.newEffectsSupported) {
-			totalParamNumber=engine.getValue("[EffectRack1_EffectUnit"+deck+"_Effect1]","num_parameters");
-		}
-		else { // old simple flanger has 3 parameters
-			totalParamNumber=3;
-		}
-		
-		VestaxVCI380.FXParamCount[deck]=totalParamNumber;
-
-		// available parameters
-		for (var paramNumber=1;paramNumber<=totalParamNumber;paramNumber++) {
-				midi.sendShortMsg(0x96+deck, paramNumber+0x3B ,VestaxVCI380.currentFXParam[deck]==paramNumber ? VestaxVCI380.FXParamActiveColor : VestaxVCI380.FXParamSetColor);
-			} 
-
-		// unavailable parameters
-		for (1;paramNumber<=7;paramNumber++) {
-				midi.sendShortMsg(0x96+deck, paramNumber+0x3B ,VestaxVCI380.FXParamUnSetColor);
-
-			// superKnob. Always #8. So we only have 7 possible single parameters for an effect 
-			if (VestaxVCI380.newEffectsSupported) { // no superknob for old flanger
-			midi.sendShortMsg(0x96+deck, 8+0x3B,VestaxVCI380.currentFXParam[deck]==8 ? VestaxVCI380.FXParamActiveColor : VestaxVCI380.FXParamSuperKnobColor);	
-		}
-		}
-}	
-
 // Light up the pads of a deck for looping mode
 VestaxVCI380.setPadColorLoopMode = function (deck) {
 	
@@ -779,6 +717,20 @@ VestaxVCI380.setPadColorLoopMode = function (deck) {
 
 	}
 }	
+
+// Light up the pads of a deck for Beat Grid mode
+VestaxVCI380.setPadColorBeatGridMode = function (deck) {
+
+	midi.sendShortMsg(0x96+deck, 0x3C ,VestaxVCI380.padColor["GREEN"]);
+	midi.sendShortMsg(0x96+deck, 0x3D ,VestaxVCI380.padColor["OFF"]);
+	midi.sendShortMsg(0x96+deck, 0x3E ,VestaxVCI380.padColor["OFF"]);
+	midi.sendShortMsg(0x96+deck, 0x3F ,VestaxVCI380.padColor["YELLOW"]);
+
+	midi.sendShortMsg(0x96+deck, 0x40 ,VestaxVCI380.padColor["OFF"]);
+	midi.sendShortMsg(0x96+deck, 0x41 ,VestaxVCI380.padColor["OFF"]);
+	midi.sendShortMsg(0x96+deck, 0x42 ,VestaxVCI380.padColor["OFF"]);
+	midi.sendShortMsg(0x96+deck, 0x43 ,VestaxVCI380.padColor["YELLOW"]);
+}
 
 VestaxVCI380.setPadColorSplash = function (deck) {
 	for (var pixel=1;pixel<=8;pixel++) {

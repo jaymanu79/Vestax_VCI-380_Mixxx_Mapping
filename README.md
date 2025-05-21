@@ -30,6 +30,7 @@ Get sure that <kbd>TOUCH SENSOR ADJ</kbd> knobs on the front panel are correctly
 * With <kbd>SHIFT</kbd>, the scratching will be accelerated to 10X speed for fast seeking
 * Turn wheels without touching the sensitive part to make temporary rate adjustments (jog)
 * Turn wheels without touching and with <kbd>SHIFT</kbd> pressed to perform beatjumps
+* Turn wheels while holding <kbd>JOG SCROLL</kbd>: control scrolling with the wheels  
 * The LED rings are simulating a vinyl record spin.
 
 ## <kbd>SYNC</kbd> / <kbd>CUE</kbd> / <kbd>>||</kbd>
@@ -60,7 +61,9 @@ The sliders adjust pitch
 
 <kbd>SCROLL</kbd> turn: move up/down  
 <kbd>BACK</kbd> and <kbd>FWD</kbd>: move left/right  
-<kbd>AREA</kbd>: Action button  
+Left <kbd>PAD FX</kbd>: move up/down (equivalent to turning SCROLL)  
+Right <kbd>PAD FX</kbd>: move left/right   
+<kbd>AREA</kbd> or <kbd>PAD FX</kbd> push: Action button  
 <kbd>SCROLL</kbd> push: change focus zone (playlists,tracklist,...)  
 <kbd>SORT</kbd>: Sort according to selected column  
 <kbd>JOGSCROLL</kbd>+<kbd>LOAD A</kbd> / <kbd>LOAD B</kbd> : Load selected track into deck A or B  
@@ -78,6 +81,9 @@ For both decks:
 They work in different modes, according to the selection buttons on the top of the controller.
 My modes are not always related to the names they bear on the controller :
 
+The left strip is used in any mode for needle drop (quick navigate) on the preview deck
+To do a needle drop on the main decks, touch the strip with <kbd>SHIFT</kbd>
+
 ### <kbd>HOT CUE</kbd> mode: HOTCUES
 8 hot cues available, one per pad. The pads will light up when their hotcue is set.  
 the colors of the lights will approximate the colors defined for the hot cues.  
@@ -86,13 +92,10 @@ the colors of the lights will approximate the colors defined for the hot cues.
 - push <kbd>SHIFT</kbd> + lighted pad to clear a hotcue
 - loop hotcues: the pad will turn green when the loop is active, push to disable loop
 
-The left strip is used for needle drop (quick navigate) on the preview deck
-To do a needle drop on the main decks, touch the strip with <kbd>SHIFT</kbd>
-
-### <kbd>SLICER</kbd> mode : EFFECTS CONTROL
-parameters for the current effect (see Effects paragraph) are assigned to pads.  
-each available parameter appears as a blue pad, and pad 8 is the "SuperKnob" in light blue.  
-push a pad to select a parameter - SuperKnob is the default - and touch the strip to change its value  
+### <kbd>SLICER</kbd> mode : BEAT GRID tools
+- green button (button 1): clone the other deck  
+- upper yellow button (button 4): BPM tap. Tap it in rhythm to adjust the BPM of the beatgrid  
+- lower yellow button (button 8): Set grid. Tap it to align the beatgrid bars to the current position  
 
 ### <kbd>AUTO LOOP</kbd>: loop mode
 The green buttons on the left control loop activation.  

@@ -3,7 +3,7 @@
     <info>
         <name>Vestax VCI-380</name>
         <author>JM Jacinto</author>
-        <description>/!\ WORK IN PROGRESS /!\</description>
+        <description>See details on github https://github.com/jaymanu79/Vestax_VCI-380_Mixxx_Mapping</description>
     </info>
     <controller id="Vestax">
         <scriptfiles>
