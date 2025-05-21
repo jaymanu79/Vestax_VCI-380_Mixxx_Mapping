@@ -48,6 +48,8 @@ VestaxVCI380.hotcueDeleteColor=VestaxVCI380.padColor["RED"];
 // 'Splash screen' : display a customizable color pattern instead of hot cues when no track is loaded
 VestaxVCI380.splashScreen = [["RED","BLUE","RED","BLUE","BLUE","RED","BLUE","RED"],["GREEN","WHITE","GREEN","WHITE","WHITE","GREEN","WHITE","GREEN"]];
 
+VestaxVCI380.cnx_beat_active = new Array(2);
+
 VestaxVCI380.init = function(id,debugging) {
 	
 	// all lights ON
@@ -78,6 +80,11 @@ VestaxVCI380.init = function(id,debugging) {
 	engine.makeConnection("[Channel2]","quantize",VestaxVCI380.initLEDs);
 	engine.makeConnection("[Channel1]","keylock",VestaxVCI380.initLEDs);
 	engine.makeConnection("[Channel2]","keylock",VestaxVCI380.initLEDs); 
+	VestaxVCI380.cnx_beat_active[1]=engine.makeConnection("[Channel1]","beat_active",VestaxVCI380.onBeatActive);
+	VestaxVCI380.cnx_beat_active[1].disconnect();
+	VestaxVCI380.cnx_beat_active[2]=engine.makeConnection("[Channel2]","beat_active",VestaxVCI380.onBeatActive);
+	VestaxVCI380.cnx_beat_active[2].disconnect();
+
 
 	// turning off all LEDs
 	VestaxVCI380.setPadColorAll(VestaxVCI380.padColor['OFF']);
@@ -103,10 +110,6 @@ VestaxVCI380.shutdown = function(id) {
 	VestaxVCI380.setPadColorAll(VestaxVCI380.padColor['OFF']);
 	VestaxVCI380.setAllLEDs(false);	
 	}
-
-
-VestaxVCI380.FXParamCount = [0,0];
-VestaxVCI380.currentFXParam = [0,0]; 
 
 ////
 // WHEELS
@@ -466,40 +469,69 @@ VestaxVCI380.onPadFXPush = function (channel, control, value, status) {
 ////
 VestaxVCI380.padMode=[1,1,1];
 VestaxVCI380.onSelectPadMode = function (channel, control, value, status) {
-	deck = VestaxVCI380.getDeck(channel);
-	if (channel>=9) { 
-		VestaxVCI380.padMode[deck]=5; // special case of shift + HOT CUE MODE, 5th mode
-	} else { 
-		VestaxVCI380.padMode[deck]=control-0x37;
+	if (value == 127 ) {
+		deck = VestaxVCI380.getDeck(channel);
+		if (channel>=9) { 
+			VestaxVCI380.padMode[deck]=5; // special case of shift + HOT CUE MODE, 5th mode
+		} else { 
+			VestaxVCI380.padMode[deck]=control-0x37;
+		}
+		VestaxVCI380.setPadMode(deck,VestaxVCI380.padMode[deck]);
 	}
-	VestaxVCI380.setPadMode(deck,VestaxVCI380.padMode[deck]);
-	}
+}
 
 VestaxVCI380.setPadMode = function (deck, mode) {
 	switch (mode) { // light up relevant LEDs for a mode
 		case 1 :
+			VestaxVCI380.cnx_beat_active[deck].disconnect();
+			console.log ("DISCONNECT " + deck + " : " + VestaxVCI380.cnx_beat_active[deck].isConnected);
 			VestaxVCI380.setPadColorHotcuesDeck(deck);
 			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 2 :
 			engine.setValue("[Skin]","show_samplers",0);
+			VestaxVCI380.cnx_beat_active[deck].disconnect();
 			VestaxVCI380.setPadColorBeatGridMode(deck);
+			VestaxVCI380.cnx_beat_active[deck]=engine.makeConnection("[Channel"+deck+"]","beat_active",VestaxVCI380.onBeatActive); 
+			console.log("CONNECT " + deck + " : " + VestaxVCI380.cnx_beat_active[deck]);
 			break;
 		case 3 :
+			VestaxVCI380.cnx_beat_active[deck].disconnect();
 			VestaxVCI380.setPadColorLoopMode(deck);
 			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 4 :
+			VestaxVCI380.cnx_beat_active[deck].disconnect();
 			VestaxVCI380.setPadColorSplash(deck);
 			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 5 :
+			VestaxVCI380.cnx_beat_active[deck].disconnect();
 			VestaxVCI380.setPadColorDeck(deck,VestaxVCI380.padColor["MAGENTA"]);
 			engine.setValue("[Skin]","show_samplers",1);
 
 			break;
 						
 	}
+}
+
+VestaxVCI380.onBeatActive = function (value, group, control) {
+	var deck=0;
+	if(group=="[Channel1]") { deck=1; }
+	else if(group=="[Channel2]") { deck=2; }
+	if (VestaxVCI380.padMode[deck]==2) {
+		switch (value) {
+			case 1: 
+				console.log ("****BEAT");
+				midi.sendShortMsg(0x96+deck, 0x3D,VestaxVCI380.padColor["YELLOW"]);
+				break;
+			case 0:
+				console.log ("****OFFFFF");
+				midi.sendShortMsg(0x96+deck, 0x3D,VestaxVCI380.padColor["OFF"]);
+				break;
+		}
+	}
+
 }
 
 // for mode 1, refresh display while a new track is loaded/unloaded
@@ -715,16 +747,7 @@ VestaxVCI380.setPadColorLoopMode = function (deck) {
 
 // Light up the pads of a deck for Beat Grid mode
 VestaxVCI380.setPadColorBeatGridMode = function (deck) {
-
-	midi.sendShortMsg(0x96+deck, 0x3C ,VestaxVCI380.padColor["GREEN"]);
-	midi.sendShortMsg(0x96+deck, 0x3D ,VestaxVCI380.padColor["OFF"]);
-	midi.sendShortMsg(0x96+deck, 0x3E ,VestaxVCI380.padColor["OFF"]);
-	midi.sendShortMsg(0x96+deck, 0x3F ,VestaxVCI380.padColor["YELLOW"]);
-
-	midi.sendShortMsg(0x96+deck, 0x40 ,VestaxVCI380.padColor["OFF"]);
-	midi.sendShortMsg(0x96+deck, 0x41 ,VestaxVCI380.padColor["OFF"]);
-	midi.sendShortMsg(0x96+deck, 0x42 ,VestaxVCI380.padColor["OFF"]);
-	midi.sendShortMsg(0x96+deck, 0x43 ,VestaxVCI380.padColor["YELLOW"]);
+	VestaxVCI380.setPadColorDeck(deck,VestaxVCI380.padColor["OFF"]);
 }
 
 VestaxVCI380.setPadColorSplash = function (deck) {
