@@ -142,8 +142,11 @@ VestaxVCI380.wheelTouch = function (channel, control, value, status) {
   if (value === 0x7F) {
        
                // select range according to shift status (shift=fast moving)
-        if(VestaxVCI380.shiftStatus) { var tpr=353 } // 10X speed
-        else { var tpr=3533 } // 1X speed, measured ticks for one wheel turn
+        if(VestaxVCI380.shiftStatus) { 
+		var tpr=353  // 10x speed
+	} else { 
+		var tpr=3533 // 1X speed, measured ticks for one wheel turn
+	}
         var alpha = 1.0/8;
         var beta = alpha/32;
         engine.scratchEnable(VestaxVCI380.getDeck(channel), tpr, 33+1/3, alpha, beta);
@@ -542,21 +545,28 @@ VestaxVCI380.setPadMode = function (deck, mode) {
 
 VestaxVCI380.onBeatActive = function (value, group, control) {
     var deck=0;
-    if(group==="[Channel1]") { deck=1; }
-    else if(group==="[Channel2]") { deck=2; }
+    if(group==="[Channel1]") { 
+	    deck=1; 
+    } else if(group==="[Channel2]") { 
+	    deck=2; 
+    }
     if (VestaxVCI380.padMode[deck]===2) {
         switch (value) {
             case 1: // Approaching bar - forward
                 prevBeatPos=VestaxVCI380.beatPos[deck];
                 VestaxVCI380.beatPos[deck]++;
-                if (VestaxVCI380.beatPos[deck]>8) { VestaxVCI380.beatPos[deck]=1;}
+                if (VestaxVCI380.beatPos[deck]>8) { 
+			VestaxVCI380.beatPos[deck]=1;
+		}
                 midi.sendShortMsg(0x96+deck, 0x3B+prevBeatPos,VestaxVCI380.color_beatInactive);
                 midi.sendShortMsg(0x96+deck, 0x3B+VestaxVCI380.beatPos[deck],VestaxVCI380.color_beatActive);
                 break;
             case 2: // Approaching bar - reverse
                 prevBeatPos=VestaxVCI380.beatPos[deck];
                 VestaxVCI380.beatPos[deck]--;
-                if (VestaxVCI380.beatPos[deck]<1) { VestaxVCI380.beatPos[deck]=8;}
+                if (VestaxVCI380.beatPos[deck]<1) { 
+			VestaxVCI380.beatPos[deck]=8;
+		}
                 midi.sendShortMsg(0x96+deck, 0x3B+prevBeatPos,VestaxVCI380.color_beatInactive);
                 midi.sendShortMsg(0x96+deck, 0x3B+VestaxVCI380.beatPos[deck],VestaxVCI380.color_beatActive);
                 break;
@@ -572,8 +582,12 @@ VestaxVCI380.onBeatActive = function (value, group, control) {
 VestaxVCI380.onTrackLoaded = function (value, group, control) {
 
         var deck=0;
-        if(group==="[Channel1]") { deck=1; }
-        else if(group==="[Channel2]") { deck=2; }
+        if(group==="[Channel1]") { 
+		deck=1; 
+	}
+        else if(group==="[Channel2]") { 
+		deck=2; 
+	}
 
         if (engine.getValue(group,"track_loaded")===0) { // track ejected -> reset display
             VestaxVCI380.setPadColorSplash(deck);
@@ -596,8 +610,11 @@ VestaxVCI380.onTrackLoaded = function (value, group, control) {
 // for mode 3, refresh colors when a loop is enabled or disabled
 VestaxVCI380.onLoopEnabled = function (value,group,control) {
     var deck=0;
-    if(group==="[Channel1]") { deck=1; }
-    else if(group==="[Channel2]") { deck=2; }
+    if(group==="[Channel1]") { 
+	    deck=1; 
+    } else if(group==="[Channel2]") { 
+	    deck=2; 
+    }
     if (VestaxVCI380.padMode[deck]===3) {
         VestaxVCI380.setPadColorLoopMode(deck);
     }
@@ -801,11 +818,13 @@ VestaxVCI380.setPadColorSplash = function (deck) {
 
 // Spinning disc indicator
 VestaxVCI380.updatePlayposition = function (value, group, control) {
-    if(group==="[Channel1]") deck=1;
-    else if(group==="[Channel2]") deck=2;
+    if(group==="[Channel1]") {
+	    deck=1;
+    } else if(group==="[Channel2]") {
+	    deck=2;
+    }
     var duration=engine.getValue(group,"duration");
     var tickPerSecond=71.11111;
-    //var totalticks=duration*tickPerSecond;
     var elapsedticks=duration*value*tickPerSecond;
     VestaxVCI380.setWheelLED(deck,elapsedticks%128);
 }
