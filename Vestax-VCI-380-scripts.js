@@ -3,22 +3,16 @@ var VestaxVCI380 = {};
 
 /*
  * TO DO
- * - bpm tap
- * - pitch scale
- * - waveform zoom ?
- * - 30sec alarm
- *
- * - use for mode 4 & 5 ?
- * - use for pads velocity ?
+ * pitch scale
+ * waveform zoom ?
+ * 30sec alarm
+ * use for pads velocity ?
  * samplers
- *
- * - better track loaded detection with 2.1
-
-# TO DO
-clone deck
-replace "jog" by scratch
-fix hotcue activate on pad 1
-respect Mixxx coding guidelines
+ * better track loaded detection with 2.1
+ * replace "jog" by scratch
+ * fix hotcue activate on pad 1
+ * PADFX light = pitch<>0
+ * deck index arrays zero-based
  * */
 
 // Variables
