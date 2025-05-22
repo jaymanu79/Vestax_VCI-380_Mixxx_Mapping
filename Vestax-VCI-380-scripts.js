@@ -139,7 +139,7 @@ VestaxVCI380.beatskipTickCount=0;
 VestaxVCI380.isScratching=[false,false];
 // The button that enables/disables scratching
 VestaxVCI380.wheelTouch = function (channel, control, value, status) {
-  if (value == 0x7F) {
+  if (value === 0x7F) {
 	   
 	   		// select range according to shift status (shift=fast moving)
 		if(VestaxVCI380.shiftStatus) { var tpr=353 } // 10X speed
@@ -192,7 +192,7 @@ VestaxVCI380.wheelTurn = function (channel, control, value, status) {
 VestaxVCI380.shiftStatus=false;
 VestaxVCI380.onShift = function (channel, control, value, status) {
 	// left and right shift have different channels, but I consider them to be equivalent
-	VestaxVCI380.shiftStatus=(value==0x7F);
+	VestaxVCI380.shiftStatus=(value===0x7F);
 	VestaxVCI380.setLED(1,VestaxVCI380.LED['SHIFT'], VestaxVCI380.shiftStatus) ;
 	VestaxVCI380.setLED(2,VestaxVCI380.LED['SHIFT'], VestaxVCI380.shiftStatus) ;
 }
@@ -200,7 +200,7 @@ VestaxVCI380.onShift = function (channel, control, value, status) {
 // Jog Scroll button
 VestaxVCI380.jogScrollStatus=false;
 VestaxVCI380.onJogScroll = function (channel, control, value, status) {
-	VestaxVCI380.jogScrollStatus=(value==0x7F);
+	VestaxVCI380.jogScrollStatus=(value===0x7F);
 	VestaxVCI380.setLED(1,VestaxVCI380.LED['JOGSCROLL'], VestaxVCI380.jogScrollStatus) ;
 }
 
@@ -258,14 +258,14 @@ VestaxVCI380.onCrossfader = function (channel, control, value, status) {
 VestaxVCI380.rateMSB=[0x00,0x00]; // MSB memory
 VestaxVCI380.onRate = function (channel, control, value, status) {
 	if (VestaxVCI380.shiftStatus) { // SHIFT + pitchfader resets pitch to 0, or triggers braking/softstart if set near min/max
-		if(control==0x0D) {
+		if(control===0x0D) {
 			if  (value >= 0x7E)  {engine.brake(VestaxVCI380.getDeck(channel),1); }
 		else {engine.setValue("[Channel"+VestaxVCI380.getDeck(channel)+"]","rate",0);}
 		}
 	} else {
-		if (control==0x0D) { // we're receiving the MSB
+		if (control===0x0D) { // we're receiving the MSB
 			VestaxVCI380.rateMSB[VestaxVCI380.getDeck(channel)]=value; // remember the MSB
-		} else if (control==0x2D) { // we're receiving the LSB
+		} else if (control===0x2D) { // we're receiving the LSB
 			// calculate the rate value by combining together the received LSB and the memorized MSB
 			engine.setValue("[Channel"+VestaxVCI380.getDeck(channel)+"]","rate", script.absoluteLin(VestaxVCI380.rateMSB[VestaxVCI380.getDeck(channel)]*128+value , -1 , 1 , 0,16384));
 		}
@@ -278,15 +278,15 @@ VestaxVCI380.onRate = function (channel, control, value, status) {
 
 // RANGE button used as key lock
 VestaxVCI380.onRange = function (channel, control, value, status) {
-	if (value==0x7F) {
+	if (value===0x7F) {
 		var deck=VestaxVCI380.getDeck(channel);
 		if (VestaxVCI380.shiftStatus) {
-				var keyLockStatus=engine.getValue("[Channel"+deck+"]","keylock")==1;
+				var keyLockStatus=engine.getValue("[Channel"+deck+"]","keylock")===1;
 				VestaxVCI380.setLED(deck+2,VestaxVCI380.LED['RANGE'], !keyLockStatus); // LEDs possess a distinct status with shift. settable by adding 2 to midi channel #
 				engine.setValue("[Channel"+deck+"]","keylock",!keyLockStatus);
 				 }
 		else {
-				var quantizeStatus=engine.getValue("[Channel"+deck+"]","quantize")==1;
+				var quantizeStatus=engine.getValue("[Channel"+deck+"]","quantize")===1;
 				VestaxVCI380.setLED(deck,VestaxVCI380.LED['RANGE'], !quantizeStatus);
 				engine.setValue("[Channel"+deck+"]","quantize",!quantizeStatus);
 		}
@@ -298,7 +298,7 @@ VestaxVCI380.onRange = function (channel, control, value, status) {
 // VINYL button used as slip mode
 VestaxVCI380.slipMode=false;
 VestaxVCI380.onVinyl = function (channel, control, value, status) {
-	    if  (value==0x7F) {
+	    if  (value===0x7F) {
 	    var deck=VestaxVCI380.getDeck(channel);
 	    VestaxVCI380.slipMode=!VestaxVCI380.slipMode;
 		VestaxVCI380.setLED(deck,VestaxVCI380.LED['VINYL'], VestaxVCI380.slipMode);
@@ -308,12 +308,12 @@ VestaxVCI380.onVinyl = function (channel, control, value, status) {
 
 // BACK and FWD buttons 
 VestaxVCI380.onBack = function (channel, control, value, status) {
-		if(value==0x7F) {
+		if(value===0x7F) {
 		engine.setValue("[Library]","MoveHorizontal",-1);
 	}
 }
 VestaxVCI380.onFwd = function (channel, control, value, status) {
-                if(value==0x7F) {
+                if(value===0x7F) {
                 engine.setValue("[Library]","MoveHorizontal",1);
         }
 }
@@ -321,21 +321,21 @@ VestaxVCI380.onFwd = function (channel, control, value, status) {
 
 // SORT button
 VestaxVCI380.onSort = function (channel, control, value, status) {
-	    if  (value==0x7F) {
+	    if  (value===0x7F) {
 			engine.setValue("[Library]","sort_focused_column",1);
 		}
 }
 
 // LOAD buttons. Must be used with jog scroll, otherwise they act as headphone cue toggle
 VestaxVCI380.onLoad = function (channel, control, value, status) {
-	if (VestaxVCI380.jogScrollStatus && value==0x7F) { // value 00 when button released would trigger deck clone (double click)
+	if (VestaxVCI380.jogScrollStatus && value===0x7F) { // value 00 when button released would trigger deck clone (double click)
 		engine.setValue("[Channel"+VestaxVCI380.getDeck(channel)+"]","LoadSelectedTrack",1);
 	}
 }
 
 // Headphone cue buttons
 VestaxVCI380.onHeadCue = function (channel, control, value, status) {
-	engine.setValue("[Channel"+VestaxVCI380.getDeck(channel)+"]","pfl",value==0x7F);
+	engine.setValue("[Channel"+VestaxVCI380.getDeck(channel)+"]","pfl",value===0x7F);
 }
 
 ////
@@ -437,7 +437,7 @@ VestaxVCI380.onPadTap = function (channel, control, value, status) {
 			case 4: // Tools mode
 					switch (padNumber) {
 						case 1: // clone from the other deck
-							engine.setValue("[Channel"+deck+"]","CloneFromDeck",(deck==1 ? 2 : 1));
+							engine.setValue("[Channel"+deck+"]","CloneFromDeck",(deck===1 ? 2 : 1));
 							break;
 					}
 			break;
@@ -476,10 +476,10 @@ VestaxVCI380.onPadFXSelect = function (channel, control, value, status) {
 		var deck = VestaxVCI380.getDeck(channel);
 		switch(deck) {
 			case 1:
-				engine.setValue("[Library]","MoveVertical",value==0x7f ? -1 : 1);
+				engine.setValue("[Library]","MoveVertical",value===0x7f ? -1 : 1);
 				break;
 			case 2:
-				engine.setValue("[Library]","MoveHorizontal",value==0x7f ? -1 : 1);
+				engine.setValue("[Library]","MoveHorizontal",value===0x7f ? -1 : 1);
 				break;
 		}
 }
@@ -499,7 +499,7 @@ VestaxVCI380.onPadFXPush = function (channel, control, value, status) {
 ////
 VestaxVCI380.padMode=[1,1,1];
 VestaxVCI380.onSelectPadMode = function (channel, control, value, status) {
-	if (value == 127 ) {
+	if (value === 127 ) {
 		deck = VestaxVCI380.getDeck(channel);
 		if (channel>=9) { 
 			VestaxVCI380.padMode[deck]=5; // special case of shift + HOT CUE MODE, 5th mode
@@ -542,9 +542,9 @@ VestaxVCI380.setPadMode = function (deck, mode) {
 
 VestaxVCI380.onBeatActive = function (value, group, control) {
 	var deck=0;
-	if(group=="[Channel1]") { deck=1; }
-	else if(group=="[Channel2]") { deck=2; }
-	if (VestaxVCI380.padMode[deck]==2) {
+	if(group==="[Channel1]") { deck=1; }
+	else if(group==="[Channel2]") { deck=2; }
+	if (VestaxVCI380.padMode[deck]===2) {
 		switch (value) {
 			case 1: // Approaching bar - forward
 				prevBeatPos=VestaxVCI380.beatPos[deck];
@@ -572,10 +572,10 @@ VestaxVCI380.onBeatActive = function (value, group, control) {
 VestaxVCI380.onTrackLoaded = function (value, group, control) {
 
 		var deck=0;
-		if(group=="[Channel1]") { deck=1; }
-		else if(group=="[Channel2]") { deck=2; }
+		if(group==="[Channel1]") { deck=1; }
+		else if(group==="[Channel2]") { deck=2; }
 
-		if (engine.getValue(group,"track_loaded")==0) { // track ejected -> reset display
+		if (engine.getValue(group,"track_loaded")===0) { // track ejected -> reset display
 			VestaxVCI380.setPadColorSplash(deck);
 			VestaxVCI380.setWheelLED(deck,0);
 		 }
@@ -596,9 +596,9 @@ VestaxVCI380.onTrackLoaded = function (value, group, control) {
 // for mode 3, refresh colors when a loop is enabled or disabled
 VestaxVCI380.onLoopEnabled = function (value,group,control) {
 	var deck=0;
-	if(group=="[Channel1]") { deck=1; }
-	else if(group=="[Channel2]") { deck=2; }
-	if (VestaxVCI380.padMode[deck]==3) {
+	if(group==="[Channel1]") { deck=1; }
+	else if(group==="[Channel2]") { deck=2; }
+	if (VestaxVCI380.padMode[deck]===3) {
 		VestaxVCI380.setPadColorLoopMode(deck);
 	}
 	
@@ -613,7 +613,7 @@ VestaxVCI380.onFXDepth = function (channel, control, value, status) {
 		}
 
 VestaxVCI380.onFXSelect = function (channel, control, value, status) {
-	engine.setValue("[QuickEffectRack1_[Channel"+VestaxVCI380.getDeck(channel)+"]]","chain_preset_selector", value == 0x7F ? 1 : -1);	
+	engine.setValue("[QuickEffectRack1_[Channel"+VestaxVCI380.getDeck(channel)+"]]","chain_preset_selector", value === 0x7F ? 1 : -1);	
 	 }
 VestaxVCI380.onFXSelectPush = function (channel, control, value, status) { 
 		engine.setValue("[EffectRack1_EffectUnit"+VestaxVCI380.getDeck(channel)+"]","group_[Channel1]_enable", 1);	
@@ -621,7 +621,7 @@ VestaxVCI380.onFXSelectPush = function (channel, control, value, status) {
 	
 VestaxVCI380.onFXOnOff = function (channel, control, value, status) { 
 		var deck = VestaxVCI380.getDeck(channel);
-		engine.setValue("[QuickEffectRack1_[Channel"+VestaxVCI380.getDeck(channel)+"]]","enabled", (value == 0x7F) ? 1 : 0);	
+		engine.setValue("[QuickEffectRack1_[Channel"+VestaxVCI380.getDeck(channel)+"]]","enabled", (value === 0x7F) ? 1 : 0);	
 	 }
 
 
@@ -679,12 +679,12 @@ VestaxVCI380.setAllLEDs = function (state) {
 }
 
 VestaxVCI380.initLEDs = function () {
-		VestaxVCI380.setLED(1,VestaxVCI380.LED["RANGE"],engine.getValue("[Channel1]","quantize")==1);
-		VestaxVCI380.setLED(2,VestaxVCI380.LED["RANGE"],engine.getValue("[Channel2]","quantize")==1);
-		VestaxVCI380.setLED(3,VestaxVCI380.LED["RANGE"],engine.getValue("[Channel1]","keylock")==1);
-		VestaxVCI380.setLED(4,VestaxVCI380.LED["RANGE"],engine.getValue("[Channel2]","keylock")==1);
-		VestaxVCI380.setLED(1,VestaxVCI380.LED["VINYL"],engine.getValue("[Channel1]","slip_enabled")==1);
-		VestaxVCI380.setLED(2,VestaxVCI380.LED["VINYL"],engine.getValue("[Channel2]","slip_enabled")==1);
+		VestaxVCI380.setLED(1,VestaxVCI380.LED["RANGE"],engine.getValue("[Channel1]","quantize")===1);
+		VestaxVCI380.setLED(2,VestaxVCI380.LED["RANGE"],engine.getValue("[Channel2]","quantize")===1);
+		VestaxVCI380.setLED(3,VestaxVCI380.LED["RANGE"],engine.getValue("[Channel1]","keylock")===1);
+		VestaxVCI380.setLED(4,VestaxVCI380.LED["RANGE"],engine.getValue("[Channel2]","keylock")===1);
+		VestaxVCI380.setLED(1,VestaxVCI380.LED["VINYL"],engine.getValue("[Channel1]","slip_enabled")===1);
+		VestaxVCI380.setLED(2,VestaxVCI380.LED["VINYL"],engine.getValue("[Channel2]","slip_enabled")===1);
 		VestaxVCI380.setLED(1,VestaxVCI380.LED["PADFX"],true);
 		VestaxVCI380.setLED(2,VestaxVCI380.LED["PADFX"],true);
 		// library control
@@ -724,7 +724,7 @@ VestaxVCI380.setPadColorAll = function (color) {
 // Light up the pads of a deck with colors of the hotcues
 VestaxVCI380.setPadColorHotcuesDeck = function (deck) {
 	for (var hotcueNumber=1;hotcueNumber<=8;hotcueNumber++) {
-		if(engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_status") != 1) {
+		if(engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_status") !== 1) {
 			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B,VestaxVCI380.color_hotcueUnset);	
 		} else {
 			hotcueColor=engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_color");
@@ -737,12 +737,12 @@ VestaxVCI380.setPadColorHotcuesDeck = function (deck) {
 // Light up the pads of a deck according to which hotcues are set or not
 VestaxVCI380.setPadColorHotcuesOne = function (deck,hotcueNumber) {
 		hotcueStatus=engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_status");
-		if(hotcueStatus == 0) { // unset
+		if(hotcueStatus === 0) { // unset
 			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.color_hotcueUnset);
-		} else if (hotcueStatus == 1) { // set
+		} else if (hotcueStatus === 1) { // set
 			hotcueColor=engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_color");
 			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.ColorMapper.getValueForNearestColor(hotcueColor));	
-		} else if (hotcueStatus == 2) { // active
+		} else if (hotcueStatus === 2) { // active
 			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.color_hotCueActive);
 		}
 }	
@@ -801,8 +801,8 @@ VestaxVCI380.setPadColorSplash = function (deck) {
 
 // Spinning disc indicator
 VestaxVCI380.updatePlayposition = function (value, group, control) {
-	if(group=="[Channel1]") deck=1;
-	else if(group=="[Channel2]") deck=2;
+	if(group==="[Channel1]") deck=1;
+	else if(group==="[Channel2]") deck=2;
 	var duration=engine.getValue(group,"duration");
 	var tickPerSecond=71.11111;
 	//var totalticks=duration*tickPerSecond;
@@ -817,7 +817,7 @@ VestaxVCI380.wheelLEDPosition=[0xFF,0xFF];
 // Light up the LED according to the provided value in MIDI range (00-7F)
 // NOTE : I couldn't find how to set the LED OFF. It will stay forever on the last set position. Any help appreciated.
 VestaxVCI380.setWheelLED = function (deck,value) {
-	if (VestaxVCI380.wheelLEDPosition[deck]!=value) { // save up unneeded MIDI outgoing messages
+	if (VestaxVCI380.wheelLEDPosition[deck]!==value) { // save up unneeded MIDI outgoing messages
 	midi.sendShortMsg(0xB6+deck,0x03,value);
 	VestaxVCI380.wheelLEDPosition[deck]=value;
 	}
