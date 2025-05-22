@@ -93,9 +93,9 @@ the colors of the lights will approximate the colors defined for the hot cues.
 - loop hotcues: the pad will turn green when the loop is active, push to disable loop
 
 ### <kbd>SLICER</kbd> mode : BEAT GRID tools
-- green button (button 1): clone the other deck  
-- upper yellow button (button 4): BPM tap. Tap it in rhythm to adjust the BPM of the beatgrid  
-- lower yellow button (button 8): Set grid. Tap it to align the beatgrid bars to the current position  
+The 8 pads will illuminate in sequence following the beat grid. To reset the sequence to beat 1, push the <kbd>SLICER</kbd> button again.
+- Push a button of higher row: BPM tap. Tap it in rhythm to adjust the calculated BPM of the track  
+- Push a button of lower row: align beatgrid. Tap it to align the beatgrid bars to the current position.    
 
 ### <kbd>AUTO LOOP</kbd>: loop mode
 The green buttons on the left control loop activation.  
@@ -110,7 +110,10 @@ The white buttons control the loop position
 - left (button 7): move left  
 - right (button 8): move right  
 
-### <kbd>ROLL</kbd> mode
-not used - suggestions welcome
+### <kbd>ROLL</kbd>: tools mode
+|Button #|Color|Function|
+|---|---|---|
+|1|GREEN|Clone the other deck|
+
 ### <kbd>SAMPLER</kbd> mode (<kbd>SHIFT</kbd> + <kbd>HOT CUE</kbd>)
 not used yet - I'm planning to control the samplers from here

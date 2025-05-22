@@ -7,23 +7,21 @@ function VestaxVCI380() {};
  * - waveform zoom ?
  * - 30sec alarm
  * 
- * - use for PAD FX ? knob & light
  * - use for mode 4 & 5 ?
- * - use for SORT button ?
  * - use for pads velocity ?
  * samplers
  * 
- * allow beatjump size change. et jump autre que par wheel
  * - better track loaded detection with 2.1
 
 # TO DO
 clone deck
 replace "jog" by scratch
-replace makeConnection by makeConnection
-Pad FX
 fix hotcue activate on pad 1
 respect Mixxx coding guidelines
  * */
+
+// Variables
+VestaxVCI380.beatPos = [0,0,0];
 
 // Color table. Colors are binary RGB, each in 2 variants : normal or dimmed
 VestaxVCI380.padColor = {'OFF':0x00,'BLUE':0x18,'GREEN':0x28,'CYAN':0x38,'RED':0x48,'MAGENTA':0x58,'YELLOW':0x68,'WHITE':0x78,'dimBLUE':0x10,'dimGREEN':0x20,'dimCYAN':0x30,'dimRED':0x40,'dimMAGENTA':0x50,'dimYELLOW':0x60,'dimWHITE':0x70 }
@@ -41,10 +39,15 @@ VestaxVCI380.ColorMapper = new ColorMapper({
 
 //// COLOR preferences
 //// you can change them to your preference
-VestaxVCI380.hotcueActiveColor=VestaxVCI380.padColor["GREEN"]; 
-VestaxVCI380.hotcueUnsetColor=VestaxVCI380.padColor["dimBLUE"];
-VestaxVCI380.hotcueActivateColor=VestaxVCI380.padColor["CYAN"];
-VestaxVCI380.hotcueDeleteColor=VestaxVCI380.padColor["RED"];
+VestaxVCI380.color_hotCueActive=VestaxVCI380.padColor["GREEN"]; 
+VestaxVCI380.color_hotcueUnset=VestaxVCI380.padColor["dimBLUE"];
+VestaxVCI380.color_hotcueActivate=VestaxVCI380.padColor["CYAN"];
+VestaxVCI380.color_hotcueDelete=VestaxVCI380.padColor["RED"];
+VestaxVCI380.color_beatActive=VestaxVCI380.padColor["WHITE"];
+VestaxVCI380.color_currentBeat=VestaxVCI380.padColor["CYAN"];
+VestaxVCI380.color_beatInactive=VestaxVCI380.padColor["dimCYAN"];
+VestaxVCI380.color_beatPushedBpm=VestaxVCI380.padColor["RED"];
+VestaxVCI380.color_beatPushedAlignGrid=VestaxVCI380.padColor["YELLOW"];
 // 'Splash screen' : display a customizable color pattern instead of hot cues when no track is loaded
 VestaxVCI380.splashScreen = [["RED","BLUE","RED","BLUE","BLUE","RED","BLUE","RED"],["GREEN","WHITE","GREEN","WHITE","WHITE","GREEN","WHITE","GREEN"]];
 
@@ -68,18 +71,18 @@ VestaxVCI380.init = function(id,debugging) {
 	engine.softTakeover("[QuickEffectRack1_[Channel2]","super1",true);
  
 	// events connection
-	engine.makeConnection("[Channel1]","playposition",VestaxVCI380.updatePlayposition);
-	engine.makeConnection("[Channel2]","playposition",VestaxVCI380.updatePlayposition);
-	engine.makeConnection("[Channel1]","hotcue_1_enabled",VestaxVCI380.onTrackLoaded);// trick for getting notified when a new track is loaded
-	engine.makeConnection("[Channel2]","hotcue_1_enabled",VestaxVCI380.onTrackLoaded);// trick for getting notified when a new track is loaded
-	engine.makeConnection("[Channel1]","track_loaded",VestaxVCI380.onTrackLoaded);
-	engine.makeConnection("[Channel2]","track_loaded",VestaxVCI380.onTrackLoaded);
-	engine.makeConnection("[Channel1]","loop_enabled",VestaxVCI380.onLoopEnabled);
-	engine.makeConnection("[Channel2]","loop_enabled",VestaxVCI380.onLoopEnabled);
-	engine.makeConnection("[Channel1]","quantize",VestaxVCI380.initLEDs);
-	engine.makeConnection("[Channel2]","quantize",VestaxVCI380.initLEDs);
-	engine.makeConnection("[Channel1]","keylock",VestaxVCI380.initLEDs);
-	engine.makeConnection("[Channel2]","keylock",VestaxVCI380.initLEDs); 
+	cnx1=engine.makeConnection("[Channel1]","playposition",VestaxVCI380.updatePlayposition);
+	cnx2=engine.makeConnection("[Channel2]","playposition",VestaxVCI380.updatePlayposition);
+	cnx3=engine.makeConnection("[Channel1]","hotcue_1_enabled",VestaxVCI380.onTrackLoaded);// trick for getting notified when a new track is loaded
+	cnx4=engine.makeConnection("[Channel2]","hotcue_1_enabled",VestaxVCI380.onTrackLoaded);// trick for getting notified when a new track is loaded
+	cnx5=engine.makeConnection("[Channel1]","track_loaded",VestaxVCI380.onTrackLoaded);
+	cnx6=engine.makeConnection("[Channel2]","track_loaded",VestaxVCI380.onTrackLoaded);
+	cnx7=engine.makeConnection("[Channel1]","loop_enabled",VestaxVCI380.onLoopEnabled);
+	cnx8=engine.makeConnection("[Channel2]","loop_enabled",VestaxVCI380.onLoopEnabled);
+	cnx9=engine.makeConnection("[Channel1]","quantize",VestaxVCI380.initLEDs);
+	cnx10=engine.makeConnection("[Channel2]","quantize",VestaxVCI380.initLEDs);
+	cnx11=engine.makeConnection("[Channel1]","keylock",VestaxVCI380.initLEDs);
+	cnx12=engine.makeConnection("[Channel2]","keylock",VestaxVCI380.initLEDs); 
 	VestaxVCI380.cnx_beat_active[1]=engine.makeConnection("[Channel1]","beat_active",VestaxVCI380.onBeatActive);
 	VestaxVCI380.cnx_beat_active[1].disconnect();
 	VestaxVCI380.cnx_beat_active[2]=engine.makeConnection("[Channel2]","beat_active",VestaxVCI380.onBeatActive);
@@ -105,7 +108,23 @@ VestaxVCI380.init = function(id,debugging) {
 
 
 VestaxVCI380.shutdown = function(id) {
-	
+
+	// disconnect connections
+	cnx1.disconnect();
+	cnx2.disconnect();
+	cnx3.disconnect();
+	cnx4.disconnect();
+	cnx5.disconnect();
+	cnx6.disconnect();
+	cnx7.disconnect();
+	cnx8.disconnect();
+	cnx9.disconnect();
+	cnx10.disconnect();
+	cnx11.disconnect();
+	cnx12.disconnect();
+	VestaxVCI380.cnx_beat_active[1].disconnect();
+	VestaxVCI380.cnx_beat_active[2].disconnect();
+
 	// turning off all LEDs
 	VestaxVCI380.setPadColorAll(VestaxVCI380.padColor['OFF']);
 	VestaxVCI380.setAllLEDs(false);	
@@ -360,23 +379,28 @@ VestaxVCI380.onPadTap = function (channel, control, value, status) {
 			case 1: // in mode 1 = HOT CUE
 				if(VestaxVCI380.shiftStatus) { // press shift-pad to clear hotcue
 					engine.setValue("[Channel"+deck+"]","hotcue_"+padNumber+"_clear",1);
-					VestaxVCI380.setPadColor(deck,padNumber,VestaxVCI380.hotcueDeleteColor);					
+					VestaxVCI380.setPadColor(deck,padNumber,VestaxVCI380.color_hotcueDelete);					
 				} else { // press pad to set or play hotcue
 					engine.setValue("[Channel"+deck+"]","hotcue_"+padNumber+"_activate",1);
-					VestaxVCI380.setPadColor(deck,padNumber,VestaxVCI380.hotcueActivateColor);
+					VestaxVCI380.setPadColor(deck,padNumber,VestaxVCI380.color_hotcueActivate);
 			    }
 			break;
 
 			case 2: // in mode 2 = Beat grid tools
 					switch (padNumber) {
-						case 1: // clone deck
-							engine.setValue("[Channel"+deck+"]","CloneFromDeck",(deck==1 ? 2 : 1));
-							break;
+						case 1:
+						case 2:
+						case 3:
 						case 4: // BPM tap
 							engine.setValue("[Channel"+deck+"]","bpm_tap",1);
+							VestaxVCI380.setPadColor(deck,padNumber,VestaxVCI380.color_beatPushedBpm);
 							break;
-						case 8: // BPM tap
+						case 5:
+						case 6:
+						case 7:
+						case 8: // Align beatgrid
 							engine.setValue("[Channel"+deck+"]","beats_translate_curpos",1);
+							VestaxVCI380.setPadColor(deck,padNumber,VestaxVCI380.color_beatPushedAlignGrid);
 							break;
 
 					}
@@ -410,10 +434,15 @@ VestaxVCI380.onPadTap = function (channel, control, value, status) {
 					}
 			break;			
 		
-			case 3:
+			case 4: // Tools mode
+					switch (padNumber) {
+						case 1: // clone from the other deck
+							engine.setValue("[Channel"+deck+"]","CloneFromDeck",(deck==1 ? 2 : 1));
+							break;
+					}
 			break;
-
-			case 4:
+		
+			case 5:
 			break;
 			
 		}
@@ -428,7 +457,8 @@ VestaxVCI380.onPadTap = function (channel, control, value, status) {
 				break;
 				
 			case 2: // in mode 2 = Beat grid tools
-			break;
+				VestaxVCI380.setPadColor(deck,padNumber,VestaxVCI380.color_beatInactive);
+				break;
 	
 			case 3:
 			break;
@@ -484,26 +514,21 @@ VestaxVCI380.setPadMode = function (deck, mode) {
 	switch (mode) { // light up relevant LEDs for a mode
 		case 1 :
 			VestaxVCI380.cnx_beat_active[deck].disconnect();
-			console.log ("DISCONNECT " + deck + " : " + VestaxVCI380.cnx_beat_active[deck].isConnected);
 			VestaxVCI380.setPadColorHotcuesDeck(deck);
-			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 2 :
-			engine.setValue("[Skin]","show_samplers",0);
 			VestaxVCI380.cnx_beat_active[deck].disconnect();
 			VestaxVCI380.setPadColorBeatGridMode(deck);
+			VestaxVCI380.beatPos[deck]=8;
 			VestaxVCI380.cnx_beat_active[deck]=engine.makeConnection("[Channel"+deck+"]","beat_active",VestaxVCI380.onBeatActive); 
-			console.log("CONNECT " + deck + " : " + VestaxVCI380.cnx_beat_active[deck]);
 			break;
 		case 3 :
 			VestaxVCI380.cnx_beat_active[deck].disconnect();
 			VestaxVCI380.setPadColorLoopMode(deck);
-			engine.setValue("[Skin]","show_samplers",0);
 			break;
 		case 4 :
 			VestaxVCI380.cnx_beat_active[deck].disconnect();
-			VestaxVCI380.setPadColorSplash(deck);
-			engine.setValue("[Skin]","show_samplers",0);
+			VestaxVCI380.setPadColorToolsMode(deck);
 			break;
 		case 5 :
 			VestaxVCI380.cnx_beat_active[deck].disconnect();
@@ -521,13 +546,22 @@ VestaxVCI380.onBeatActive = function (value, group, control) {
 	else if(group=="[Channel2]") { deck=2; }
 	if (VestaxVCI380.padMode[deck]==2) {
 		switch (value) {
-			case 1: 
-				console.log ("****BEAT");
-				midi.sendShortMsg(0x96+deck, 0x3D,VestaxVCI380.padColor["YELLOW"]);
+			case 1: // Approaching bar - forward
+				prevBeatPos=VestaxVCI380.beatPos[deck];
+				VestaxVCI380.beatPos[deck]++;
+				if (VestaxVCI380.beatPos[deck]>8) { VestaxVCI380.beatPos[deck]=1;}
+				midi.sendShortMsg(0x96+deck, 0x3B+prevBeatPos,VestaxVCI380.color_beatInactive);
+				midi.sendShortMsg(0x96+deck, 0x3B+VestaxVCI380.beatPos[deck],VestaxVCI380.color_beatActive);
 				break;
-			case 0:
-				console.log ("****OFFFFF");
-				midi.sendShortMsg(0x96+deck, 0x3D,VestaxVCI380.padColor["OFF"]);
+			case 2: // Approaching bar - reverse
+				prevBeatPos=VestaxVCI380.beatPos[deck];
+				VestaxVCI380.beatPos[deck]--;
+				if (VestaxVCI380.beatPos[deck]<1) { VestaxVCI380.beatPos[deck]=8;}
+				midi.sendShortMsg(0x96+deck, 0x3B+prevBeatPos,VestaxVCI380.color_beatInactive);
+				midi.sendShortMsg(0x96+deck, 0x3B+VestaxVCI380.beatPos[deck],VestaxVCI380.color_beatActive);
+				break;
+			case 0: // Getting away from bar
+				midi.sendShortMsg(0x96+deck, 0x3B+VestaxVCI380.beatPos[deck],VestaxVCI380.color_currentBeat);
 				break;
 		}
 	}
@@ -667,7 +701,6 @@ VestaxVCI380.initLEDs = function () {
 // Sets the color of a pad identified by deck# (1-2) and pad# (1-8)
 // color from padCOLOR table
 VestaxVCI380.setPadColor = function (deck,pad,color) {
-	console.log("PAD COLOR deck " + deck + " pad " + pad + " color " + color);
 	midi.sendShortMsg(0x96+deck, 0x3B + pad,color);
 }	
 
@@ -692,7 +725,7 @@ VestaxVCI380.setPadColorAll = function (color) {
 VestaxVCI380.setPadColorHotcuesDeck = function (deck) {
 	for (var hotcueNumber=1;hotcueNumber<=8;hotcueNumber++) {
 		if(engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_status") != 1) {
-			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B,VestaxVCI380.hotcueUnsetColor);	
+			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B,VestaxVCI380.color_hotcueUnset);	
 		} else {
 			hotcueColor=engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_color");
 			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.ColorMapper.getValueForNearestColor(hotcueColor));
@@ -705,12 +738,12 @@ VestaxVCI380.setPadColorHotcuesDeck = function (deck) {
 VestaxVCI380.setPadColorHotcuesOne = function (deck,hotcueNumber) {
 		hotcueStatus=engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_status");
 		if(hotcueStatus == 0) { // unset
-			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.hotcueUnsetColor);
+			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.color_hotcueUnset);
 		} else if (hotcueStatus == 1) { // set
 			hotcueColor=engine.getValue("[Channel" + deck + "]","hotcue_" + hotcueNumber + "_color");
 			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.ColorMapper.getValueForNearestColor(hotcueColor));	
 		} else if (hotcueStatus == 2) { // active
-			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.hotcueActiveColor);
+			midi.sendShortMsg(0x96+deck, hotcueNumber+0x3B ,VestaxVCI380.color_hotCueActive);
 		}
 }	
 
@@ -747,7 +780,13 @@ VestaxVCI380.setPadColorLoopMode = function (deck) {
 
 // Light up the pads of a deck for Beat Grid mode
 VestaxVCI380.setPadColorBeatGridMode = function (deck) {
+	VestaxVCI380.setPadColorDeck(deck,VestaxVCI380.color_beatInactive);
+}
+
+// Light up the pads of a deck for Tools mode
+VestaxVCI380.setPadColorToolsMode = function (deck) {
 	VestaxVCI380.setPadColorDeck(deck,VestaxVCI380.padColor["OFF"]);
+	VestaxVCI380.setPadColor(deck,1,VestaxVCI380.padColor["GREEN"]);
 }
 
 VestaxVCI380.setPadColorSplash = function (deck) {
