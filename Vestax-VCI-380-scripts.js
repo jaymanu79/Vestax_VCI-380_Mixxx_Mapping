@@ -8,11 +8,6 @@ var VestaxVCI380 = {};
  * 30sec alarm
  * use for pads velocity ?
  * replace "jog" by scratch
- * fix hotcue activate on pad 1
- * PADFX light = pitch<>0
- * deck index arrays zero-based
- * loop mode: connect control
- * hotcues: connect control?
  * unused button : FX SELECT
  * */
 
@@ -53,8 +48,8 @@ VestaxVCI380.colorSamplerPlayingLoop=VestaxVCI380.padColor.WHITE;
 VestaxVCI380.splashScreen = [["RED", "BLUE", "RED", "BLUE", "BLUE", "RED", "BLUE", "RED"], ["GREEN", "WHITE", "GREEN", "WHITE", "WHITE", "GREEN", "WHITE", "GREEN"]];
 
 // We need to map sampler and button numbers so the controller and GUI layout match
-VestaxVCI380.buttonToSampler = { 1:1 , 2:2 , 3:5 , 4:6 , 5:3 , 6:4 , 7:7 , 8:8 };
-VestaxVCI380.samplerToButton = { 1:1 , 2:2 , 5:3 , 6:4 , 3:5 , 4:6 , 7:7 , 8:8 };
+VestaxVCI380.buttonToSampler = {1: 1, 2: 2, 3: 5, 4: 6, 5: 3, 6: 4, 7: 7, 8: 8};
+VestaxVCI380.samplerToButton = {1: 1, 2: 2, 5: 3, 6: 4, 3: 5, 4: 6, 7: 7, 8: 8};
 
 VestaxVCI380.connections=[];        // permanent control connections
 VestaxVCI380.modeConnections=[];    // temporary control connections related to current mode ..
@@ -129,13 +124,13 @@ VestaxVCI380.shutdown = function(_id) {
     VestaxVCI380.setAllLEDs(false);
 };
 
-VestaxVCI380.getDeckFromGroup = function (group) {
+VestaxVCI380.getDeckFromGroup = function(group) {
     if (group==="[Channel1]") {
-            return(1);
+        return (1);
     } else if (group==="[Channel2]") {
-            return(2);
+        return (2);
     }
-}
+};
 
 ////
 // WHEELS
@@ -371,6 +366,9 @@ VestaxVCI380.onStripMode3 = function(channel, control, value, status) {
 VestaxVCI380.onStripMode4 = function(channel, control, value, status) {
     VestaxVCI380.onStripMode1(channel, control, value, status);
 };
+VestaxVCI380.onStripMode5 = function(channel, control, value, status) {
+    VestaxVCI380.onStripMode1(channel, control, value, status);
+};
 
 ////
 // COLOR PADS
@@ -381,6 +379,7 @@ VestaxVCI380.onStripMode4 = function(channel, control, value, status) {
 VestaxVCI380.onPadTap = function(channel, control, value, _status) {
     const deck = VestaxVCI380.getDeck(channel);
     const padNumber= control - 0x3B;
+    let samplerNumber=0;
 
     if (value>0x00) { // PAD pressed
         switch (VestaxVCI380.padMode[deck]) {
@@ -451,29 +450,29 @@ VestaxVCI380.onPadTap = function(channel, control, value, _status) {
             break;
 
         case 5: // Samplers mode
-                var samplerNumber=VestaxVCI380.buttonToSampler[padNumber];
-                if (samplerNumber <= engine.getValue("[App]","num_samplers")) {
-                    if (VestaxVCI380.shiftStatus) {
-                        if (engine.getValue("[Sampler"+samplerNumber+"]","play")) {
-                            engine.setValue("[Sampler"+samplerNumber+"]","play",0);
-                        } else {
-                            engine.setValue("[Sampler"+samplerNumber+"]","eject",1);
-                        }
+            samplerNumber=VestaxVCI380.buttonToSampler[padNumber];
+            if (samplerNumber <= engine.getValue("[App]", "num_samplers")) {
+                if (VestaxVCI380.shiftStatus) {
+                    if (engine.getValue(`[Sampler${samplerNumber}]`, "play")) {
+                        engine.setValue(`[Sampler${samplerNumber}]`, "play", 0);
                     } else {
-                        if (engine.getValue("[Sampler"+samplerNumber+"]","track_loaded")) {
-                            engine.setValue("[Sampler"+samplerNumber+"]","cue_gotoandplay",1);
-                        } else {
-                            engine.setValue("[Sampler"+samplerNumber+"]","LoadSelectedTrack",1);
-                        }
+                        engine.setValue(`[Sampler${samplerNumber}]`, "eject", 1);
+                    }
+                } else {
+                    if (engine.getValue(`[Sampler${samplerNumber}]`, "track_loaded")) {
+                        engine.setValue(`[Sampler${samplerNumber}]`, "cue_gotoandplay", 1);
+                    } else {
+                        engine.setValue(`[Sampler${samplerNumber}]`, "LoadSelectedTrack", 1);
                     }
                 }
+            }
             break;
         }
 
 
     } else { // PAD released
         switch (VestaxVCI380.padMode[deck]) {
-        case 1: // in mode 1, releasing pad de-activates and resets color for hotcue
+        case 1: // in mode 1, releasing pad de-activates and resets pad color for hotcue
             engine.setValue(`[Channel${deck}]`, `hotcue_${padNumber}_activate`, 0);
             VestaxVCI380.setPadColorHotcuesOne(deck, padNumber);
             break;
@@ -508,8 +507,10 @@ VestaxVCI380.onPadFXSelect = function(channel, control, value, _status) {
     }
 };
 
-VestaxVCI380.onPadFXPush = function(_channel, _control, _value, _status) {
-    engine.setValue("[Library]", "GoToItem", 1);
+VestaxVCI380.onPadFXPush = function(_channel, _control, value, _status) {
+    if (value===127) {
+	    engine.setValue("[Library]", "GoToItem", 1);
+    }
 };
 
 
@@ -525,23 +526,23 @@ VestaxVCI380.padMode=[1, 1, 1];
 VestaxVCI380.onSelectPadMode = function(channel, control, value, _status) {
     if (value === 127) {
         const deck = VestaxVCI380.getDeck(channel);
-	var newMode=0;
+        let newMode=0;
         if (channel>=9) {
             newMode=5; // special case of shift + HOT CUE MODE, 5th mode
         } else {
             newMode=control-0x37;
         }
-	VestaxVCI380.setMode(deck,newMode);
+        VestaxVCI380.setMode(deck, newMode);
     }
 };
 
 VestaxVCI380.setMode = function(deck, newMode) {
-    var previousMode=VestaxVCI380.padMode[deck];
+    const previousMode=VestaxVCI380.padMode[deck];
     VestaxVCI380.padMode[deck]=newMode;
-    VestaxVCI380.clearConnectionsForMode(deck,previousMode);
+    VestaxVCI380.clearConnectionsForMode(deck, previousMode);
     VestaxVCI380.setPadMode(deck, newMode);
-    VestaxVCI380.makeConnectionsForMode(deck,newMode);
-}
+    VestaxVCI380.makeConnectionsForMode(deck, newMode);
+};
 
 VestaxVCI380.setPadMode = function(deck, mode) {
     switch (mode) { // light up relevant LEDs for a mode
@@ -567,46 +568,62 @@ VestaxVCI380.setPadMode = function(deck, mode) {
     }
 };
 
-VestaxVCI380.makeConnectionsForMode = function(deck,mode) {
-	var connector;
-	switch (mode) {
-	    case 2 :
-               VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection("[Channel"+deck+"]", "beat_active", VestaxVCI380.onBeatActive));
-               break;
+VestaxVCI380.makeConnectionsForMode = function(deck, mode) {
+    let connector;
+    let numSamplers;
+    switch (mode) {
+    case 1 : // hot cues
+        for (let hotcue = 1; hotcue <= 8; hotcue++) {
+            VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection(`[Channel${deck}]`, `hotcue_${hotcue}_color`, VestaxVCI380.onHotcueUpdated));
+            VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection(`[Channel${deck}]`, `hotcue_${hotcue}_type`, VestaxVCI380.onHotcueUpdated));
+        }
+        break;
 
-	    case 3 :
-		connector=engine.makeConnection("[Channel"+deck+"]","loop_enabled", VestaxVCI380.onLoopEnabled);
-		connector.trigger();
-		VestaxVCI380.modeConnections[deck-1].push(connector);
+    case 2 : // beat grid
+        VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection(`[Channel${deck}]`, "beat_active", VestaxVCI380.onBeatActive));
+        break;
 
-            case 5 :
-               var numSamplers=engine.getValue("[App]","num_samplers"); 
-               for (let sampler = 1; sampler <= numSamplers; sampler++) {
-                   connector=engine.makeConnection("[Sampler"+sampler+"]", "play", VestaxVCI380.onSampler);
-                   connector.trigger();
-                   VestaxVCI380.modeConnections[deck-1].push(connector);
-                   connector=engine.makeConnection("[Sampler"+sampler+"]", "track_loaded", VestaxVCI380.onSampler);
-                   connector.trigger();
-                   VestaxVCI380.modeConnections[deck-1].push(connector);
-               }
+    case 3 : // loop
+        connector=engine.makeConnection(`[Channel${deck}]`, "loop_enabled", VestaxVCI380.onLoopEnabled);
+        connector.trigger();
+        VestaxVCI380.modeConnections[deck-1].push(connector);
+        break;
+
+    case 5 : // samplers
+        numSamplers=engine.getValue("[App]", "num_samplers");
+        for (let sampler = 1; sampler <= numSamplers; sampler++) {
+            connector=engine.makeConnection(`[Sampler${sampler}]`, "play", VestaxVCI380.onSampler);
+            connector.trigger();
+            VestaxVCI380.modeConnections[deck-1].push(connector);
+            connector=engine.makeConnection(`[Sampler${sampler}]`, "track_loaded", VestaxVCI380.onSampler);
+            connector.trigger();
+            VestaxVCI380.modeConnections[deck-1].push(connector);
+        }
     }
-}
+};
 
-VestaxVCI380.clearConnectionsForMode = function(deck,_mode) {
+VestaxVCI380.clearConnectionsForMode = function(deck, _mode) {
     while (VestaxVCI380.modeConnections[deck-1].length > 0) {
         VestaxVCI380.modeConnections[deck-1].pop().disconnect();
     };
-}
+};
+
+VestaxVCI380.onHotcueUpdated = function(value, group, _control) {
+    const deck=VestaxVCI380.getDeckFromGroup(group);
+    if (VestaxVCI380.padMode[deck]===1) {
+        VestaxVCI380.setPadColorHotcuesDeck(deck);
+    }
+};
 
 VestaxVCI380.onSampler = function(value, group, control) {
-    if(group.startsWith("[Sampler")) {
-        console.log("EVENT " + value + " " + group + " " + control);
-        var button=VestaxVCI380.samplerToButton[group.match(/\d+/)[0]];
-        var color=0
+    if (group.startsWith("[Sampler")) {
+        console.log(`EVENT ${  value  } ${  group  } ${  control}`);
+        const button=VestaxVCI380.samplerToButton[group.match(/\d+/)[0]];
+        let color=0;
         if (control==="track_loaded") {
             color=(value===1 ? VestaxVCI380.colorSamplerLoaded : VestaxVCI380.colorSamplerEmpty);
-            console.log("color = " + color);
-        } else if (control==="play" && engine.getValue(group,"track_loaded")===1) {
+            console.log(`color = ${  color}`);
+        } else if (control==="play" && engine.getValue(group, "track_loaded")===1) {
             color=(value===1 ? VestaxVCI380.colorSamplerPlaying : VestaxVCI380.colorSamplerLoaded);
         }
         if (VestaxVCI380.padMode[1]===5) {
@@ -617,10 +634,10 @@ VestaxVCI380.onSampler = function(value, group, control) {
         }
 
     }
-}
+};
 
 VestaxVCI380.onBeatActive = function(value, group, _control) {
-    let deck=VestaxVCI380.getDeckFromGroup(group);
+    const deck=VestaxVCI380.getDeckFromGroup(group);
     if (VestaxVCI380.padMode[deck]===2) {
         let prevBeatPos;
         switch (value) {
@@ -651,14 +668,14 @@ VestaxVCI380.onBeatActive = function(value, group, _control) {
 };
 
 VestaxVCI380.onRateChange = function(value, group, _control) {
-    let deck=VestaxVCI380.getDeckFromGroup(group);
-    console.log("RATE "+value);
+    const deck=VestaxVCI380.getDeckFromGroup(group);
+    console.log(`RATE ${value}`);
     VestaxVCI380.setLED(deck, VestaxVCI380.LED.PADFX, value!==0);
-}
+};
 
 // for mode 1, refresh display while a new track is loaded/unloaded
 VestaxVCI380.onTrackLoaded = function(value, group, _control) {
-    let deck=VestaxVCI380.getDeckFromGroup(group);
+    const deck=VestaxVCI380.getDeckFromGroup(group);
     if (engine.getValue(group, "track_loaded")===0) { // track ejected -> reset display
         VestaxVCI380.setPadColorSplash(deck);
         VestaxVCI380.setWheelLED(deck, 0);
@@ -669,22 +686,22 @@ VestaxVCI380.onTrackLoaded = function(value, group, _control) {
         case 1:
             VestaxVCI380.setPadColorHotcuesDeck(deck);
             break;
-	case 2:
-	    VestaxVCI380.setPadColorBeatGridMode(deck);
-	    break;
+        case 2:
+            VestaxVCI380.setPadColorBeatGridMode(deck);
+            break;
         case 3:
             VestaxVCI380.setPadColorLoopMode(deck);
             break;
-	case 4:
-	    VestaxVCI380.setPadColorToolsMode(deck);
-	    break
+        case 4:
+            VestaxVCI380.setPadColorToolsMode(deck);
+            break;
         }
     }
 };
 
 // for mode 3, refresh colors when a loop is enabled or disabled
 VestaxVCI380.onLoopEnabled = function(value, group, _control) {
-    let deck=VestaxVCI380.getDeckFromGroup(group);
+    const deck=VestaxVCI380.getDeckFromGroup(group);
     if (VestaxVCI380.padMode[deck]===3) {
         VestaxVCI380.setPadColorLoopMode(deck);
     }
@@ -775,7 +792,7 @@ VestaxVCI380.initLEDs = function() {
     VestaxVCI380.setLED(1, VestaxVCI380.LED.FWD, true);
 };
 
-////
+/////
 // Controlling pad color LEDs
 ////
 
@@ -872,7 +889,7 @@ VestaxVCI380.setPadColorToolsMode = function(deck) {
 // Light up the pads of a deck for Sampler mode
 VestaxVCI380.setPadColorSamplerMode = function(deck) {
     VestaxVCI380.setPadColor(deck, 1, VestaxVCI380.padColor.MAGENTA);
-}
+};
 
 VestaxVCI380.setPadColorSplash = function(deck) {
     for (let pixel=1; pixel<=8; pixel++) {
@@ -886,7 +903,7 @@ VestaxVCI380.setPadColorSplash = function(deck) {
 
 // Spinning disc indicator
 VestaxVCI380.updatePlayposition = function(value, group, _control) {
-    let deck=VestaxVCI380.getDeckFromGroup(group);
+    const deck=VestaxVCI380.getDeckFromGroup(group);
     const duration=engine.getValue(group, "duration");
     const tickPerSecond=71.11111;
     const elapsedticks=duration*value*tickPerSecond;
