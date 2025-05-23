@@ -7,14 +7,13 @@ var VestaxVCI380 = {};
  * waveform zoom ?
  * 30sec alarm
  * use for pads velocity ?
- * samplers
- * better track loaded detection with 2.1
  * replace "jog" by scratch
  * fix hotcue activate on pad 1
  * PADFX light = pitch<>0
  * deck index arrays zero-based
  * loop mode: connect control
  * hotcues: connect control?
+ * unused button : FX SELECT
  * */
 
 // Variables
@@ -53,6 +52,10 @@ VestaxVCI380.colorSamplerPlayingLoop=VestaxVCI380.padColor.WHITE;
 // 'Splash screen' : display a customizable color pattern instead of hot cues when no track is loaded
 VestaxVCI380.splashScreen = [["RED", "BLUE", "RED", "BLUE", "BLUE", "RED", "BLUE", "RED"], ["GREEN", "WHITE", "GREEN", "WHITE", "WHITE", "GREEN", "WHITE", "GREEN"]];
 
+// We need to map sampler and button numbers so the controller and GUI layout match
+VestaxVCI380.buttonToSampler = { 1:1 , 2:2 , 3:5 , 4:6 , 5:3 , 6:4 , 7:7 , 8:8 };
+VestaxVCI380.samplerToButton = { 1:1 , 2:2 , 5:3 , 6:4 , 3:5 , 4:6 , 7:7 , 8:8 };
+
 VestaxVCI380.connections=[];        // permanent control connections
 VestaxVCI380.modeConnections=[];    // temporary control connections related to current mode ..
 VestaxVCI380.modeConnections[0]=[]; // .. for deck 1
@@ -74,8 +77,8 @@ VestaxVCI380.init = function(_id, _debugging) {
     engine.softTakeover("[Channel1]", "volume", true);
     engine.softTakeover("[Channel2]", "volume", true);
     engine.softTakeover("[Master]", "crossfader", true);
-    engine.softTakeover("[QuickEffectRack1_[Channel1]", "super1", true);
-    engine.softTakeover("[QuickEffectRack1_[Channel2]", "super1", true);
+    engine.softTakeover("[QuickEffectRack1_[Channel1]]", "super1", true);
+    engine.softTakeover("[QuickEffectRack1_[Channel2]]", "super1", true);
 
     // events connection
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "playposition", VestaxVCI380.updatePlayposition));
@@ -492,9 +495,6 @@ VestaxVCI380.onPadTap = function(channel, control, value, _status) {
     }
 };
 
-// We need to map sampler and button numbers so the controller and GUI layout match
-VestaxVCI380.buttonToSampler = { 1:1 , 2:2 , 3:5 , 4:6 , 5:3 , 6:4 , 7:7 , 8:8 };
-VestaxVCI380.samplerToButton = { 1:1 , 2:2 , 5:3 , 6:4 , 3:5 , 4:6 , 7:7 , 8:8 };
 
 
 // PADFX button, select and push
