@@ -52,7 +52,8 @@ The sliders adjust pitch
 <kbd>SHIFT</kbd> + move slider: reset speed to 1X  
 <kbd>SHIFT</kbd> + move slider to topmost position ("-"): brake effect  
 <kbd>SHIFT</kbd> + <kbd>RANGE</kbd>: toggle keylock  
-<kbd>RANGE</kbd>: toggle quantization 
+<kbd>RANGE</kbd>: toggle quantization  
+While the pitch is different from zero, the red PAD FX LED will light up as a reminder that the deck is pitched 
 
 ## Navigation area
 

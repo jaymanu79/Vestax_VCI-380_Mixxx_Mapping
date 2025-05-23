@@ -13,6 +13,8 @@ var VestaxVCI380 = {};
  * fix hotcue activate on pad 1
  * PADFX light = pitch<>0
  * deck index arrays zero-based
+ * loop mode: connect control
+ * hotcues: connect control?
  * */
 
 // Variables
@@ -80,6 +82,8 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "quantize", VestaxVCI380.initLEDs));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "keylock", VestaxVCI380.initLEDs));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "keylock", VestaxVCI380.initLEDs));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "rate", VestaxVCI380.onRateChange));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "rate", VestaxVCI380.onRateChange));
     VestaxVCI380.cnxBeatActive[1]=engine.makeConnection("[Channel1]", "beat_active", VestaxVCI380.onBeatActive);
     VestaxVCI380.cnxBeatActive[1].disconnect();
     VestaxVCI380.cnxBeatActive[2]=engine.makeConnection("[Channel2]", "beat_active", VestaxVCI380.onBeatActive);
@@ -118,6 +122,14 @@ VestaxVCI380.shutdown = function(_id) {
     VestaxVCI380.setPadColorAll(VestaxVCI380.padColor.OFF);
     VestaxVCI380.setAllLEDs(false);
 };
+
+VestaxVCI380.getDeckFromGroup = function (group) {
+    if (group==="[Channel1]") {
+            return(1);
+    } else if (group==="[Channel2]") {
+            return(2);
+    }
+}
 
 ////
 // WHEELS
@@ -531,12 +543,7 @@ VestaxVCI380.setPadMode = function(deck, mode) {
 };
 
 VestaxVCI380.onBeatActive = function(value, group, _control) {
-    let deck=0;
-    if (group==="[Channel1]") {
-	    deck=1;
-    } else if (group==="[Channel2]") {
-	    deck=2;
-    }
+    let deck=VestaxVCI380.getDeckFromGroup(group);
     if (VestaxVCI380.padMode[deck]===2) {
         let prevBeatPos;
         switch (value) {
@@ -566,16 +573,15 @@ VestaxVCI380.onBeatActive = function(value, group, _control) {
 
 };
 
+VestaxVCI380.onRateChange = function(value, group, _control) {
+    let deck=VestaxVCI380.getDeckFromGroup(group);
+    console.log("RATE "+value);
+    VestaxVCI380.setLED(deck, VestaxVCI380.LED.PADFX, value!==0);
+}
+
 // for mode 1, refresh display while a new track is loaded/unloaded
 VestaxVCI380.onTrackLoaded = function(value, group, _control) {
-
-    let deck=0;
-    if (group==="[Channel1]") {
-        deck=1;
-    } else if (group==="[Channel2]") {
-        deck=2;
-    }
-
+    let deck=VestaxVCI380.getDeckFromGroup(group);
     if (engine.getValue(group, "track_loaded")===0) { // track ejected -> reset display
         VestaxVCI380.setPadColorSplash(deck);
         VestaxVCI380.setWheelLED(deck, 0);
@@ -595,12 +601,7 @@ VestaxVCI380.onTrackLoaded = function(value, group, _control) {
 
 // for mode 3, refresh colors when a loop is enabled or disabled
 VestaxVCI380.onLoopEnabled = function(value, group, _control) {
-    let deck=0;
-    if (group==="[Channel1]") {
-	    deck=1;
-    } else if (group==="[Channel2]") {
-	    deck=2;
-    }
+    let deck=VestaxVCI380.getDeckFromGroup(group);
     if (VestaxVCI380.padMode[deck]===3) {
         VestaxVCI380.setPadColorLoopMode(deck);
     }
@@ -682,8 +683,8 @@ VestaxVCI380.initLEDs = function() {
     VestaxVCI380.setLED(4, VestaxVCI380.LED.RANGE, engine.getValue("[Channel2]", "keylock")===1);
     VestaxVCI380.setLED(1, VestaxVCI380.LED.VINYL, engine.getValue("[Channel1]", "slip_enabled")===1);
     VestaxVCI380.setLED(2, VestaxVCI380.LED.VINYL, engine.getValue("[Channel2]", "slip_enabled")===1);
-    VestaxVCI380.setLED(1, VestaxVCI380.LED.PADFX, true);
-    VestaxVCI380.setLED(2, VestaxVCI380.LED.PADFX, true);
+    VestaxVCI380.setLED(1, VestaxVCI380.LED.PADFX, engine.getValue("[Channel1]", "rate")!==0);
+    VestaxVCI380.setLED(2, VestaxVCI380.LED.PADFX, engine.getValue("[Channel2]", "rate")!==0);
     // library control
     VestaxVCI380.setLED(1, VestaxVCI380.LED.AREA, true);
     VestaxVCI380.setLED(1, VestaxVCI380.LED.SORT, true);
@@ -797,12 +798,7 @@ VestaxVCI380.setPadColorSplash = function(deck) {
 
 // Spinning disc indicator
 VestaxVCI380.updatePlayposition = function(value, group, _control) {
-    let deck;
-    if (group==="[Channel1]") {
-	    deck=1;
-    } else if (group==="[Channel2]") {
-	    deck=2;
-    }
+    let deck=VestaxVCI380.getDeckFromGroup(group);
     const duration=engine.getValue(group, "duration");
     const tickPerSecond=71.11111;
     const elapsedticks=duration*value*tickPerSecond;
