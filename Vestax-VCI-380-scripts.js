@@ -85,8 +85,6 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "playposition", VestaxVCI380.updatePlayposition));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "track_loaded", VestaxVCI380.onTrackLoaded));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "track_loaded", VestaxVCI380.onTrackLoaded));
-    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "loop_enabled", VestaxVCI380.onLoopEnabled));
-    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "loop_enabled", VestaxVCI380.onLoopEnabled));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "quantize", VestaxVCI380.initLEDs));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "quantize", VestaxVCI380.initLEDs));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "keylock", VestaxVCI380.initLEDs));
@@ -570,14 +568,19 @@ VestaxVCI380.setPadMode = function(deck, mode) {
 };
 
 VestaxVCI380.makeConnectionsForMode = function(deck,mode) {
-    switch (mode) {
+	var connector;
+	switch (mode) {
 	    case 2 :
                VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection("[Channel"+deck+"]", "beat_active", VestaxVCI380.onBeatActive));
                break;
 
+	    case 3 :
+		connector=engine.makeConnection("[Channel"+deck+"]","loop_enabled", VestaxVCI380.onLoopEnabled);
+		connector.trigger();
+		VestaxVCI380.modeConnections[deck-1].push(connector);
+
             case 5 :
                var numSamplers=engine.getValue("[App]","num_samplers"); 
-               var connector;
                for (let sampler = 1; sampler <= numSamplers; sampler++) {
                    connector=engine.makeConnection("[Sampler"+sampler+"]", "play", VestaxVCI380.onSampler);
                    connector.trigger();
@@ -666,9 +669,15 @@ VestaxVCI380.onTrackLoaded = function(value, group, _control) {
         case 1:
             VestaxVCI380.setPadColorHotcuesDeck(deck);
             break;
+	case 2:
+	    VestaxVCI380.setPadColorBeatGridMode(deck);
+	    break;
         case 3:
             VestaxVCI380.setPadColorLoopMode(deck);
             break;
+	case 4:
+	    VestaxVCI380.setPadColorToolsMode(deck);
+	    break
         }
     }
 };
