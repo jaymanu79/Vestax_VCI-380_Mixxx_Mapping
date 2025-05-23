@@ -121,5 +121,11 @@ The white buttons control the loop position
 |1|GREEN|Clone the other deck|
 
 ### <kbd>SAMPLER</kbd> mode (<kbd>SHIFT</kbd> + <kbd>HOT CUE</kbd>)
-not used yet - I'm planning to control the samplers from here
+In Sampler mode, each pad is controlling a sampler.  
+They are mapped so the pads are organized in the same layout as the 8 samplers on mixxx default skin.  
+|Color|Meaning|Button action|<kbd>SHIFT</kbd> + button action|
+|---|---|
+|OFF|no track loaded|load selected track| |
+|green|a track is loaded|play|eject|
+|yellow|playing|restart|stop|
 
