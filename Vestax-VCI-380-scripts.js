@@ -72,8 +72,6 @@ VestaxVCI380.init = function(_id, _debugging) {
     // events connection
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "playposition", VestaxVCI380.updatePlayposition));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "playposition", VestaxVCI380.updatePlayposition));
-    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "hotcue_1_enabled", VestaxVCI380.onTrackLoaded));// trick for getting notified when a new track is loaded
-    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "hotcue_1_enabled", VestaxVCI380.onTrackLoaded));// trick for getting notified when a new track is loaded
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "track_loaded", VestaxVCI380.onTrackLoaded));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "track_loaded", VestaxVCI380.onTrackLoaded));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "loop_enabled", VestaxVCI380.onLoopEnabled));
@@ -88,7 +86,6 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.cnxBeatActive[1].disconnect();
     VestaxVCI380.cnxBeatActive[2]=engine.makeConnection("[Channel2]", "beat_active", VestaxVCI380.onBeatActive);
     VestaxVCI380.cnxBeatActive[2].disconnect();
-
 
     // turning off all LEDs
     VestaxVCI380.setPadColorAll(VestaxVCI380.padColor.OFF);
