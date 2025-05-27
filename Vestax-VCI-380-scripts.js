@@ -64,9 +64,10 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.setPadColorAll(VestaxVCI380.padColor.WHITE);
     VestaxVCI380.setAllLEDs(true);
 
-    // Set the samplerate to 48KHz, the only rate working for the 380
-    // (You might want to remove this line if you are not using the 380 built-in soundcard)
-    engine.setValue("[App]", "samplerate", 48000);
+    // Optional: Set the samplerate to 48KHz, the only rate accepted by the VCI380 integrated soundcard
+    if (engine.getSetting("autoSampleRate")) {
+        engine.setValue("[App]", "samplerate", 48000);
+    }
 
     // soft takeover
     engine.softTakeover("[Channel1]", "volume", true);
