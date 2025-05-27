@@ -34,14 +34,13 @@ VestaxVCI380.colorHotcueUnset=VestaxVCI380.padColor.dimBLUE;
 VestaxVCI380.colorHotcueActivate=VestaxVCI380.padColor.CYAN;
 VestaxVCI380.colorHotcueDelete=VestaxVCI380.padColor.RED;
 VestaxVCI380.colorBeatActive=VestaxVCI380.padColor.WHITE;
-VestaxVCI380.colorCurrentBeat=VestaxVCI380.padColor.CYAN;
+VestaxVCI380.colorCurrentBeat=VestaxVCI380.padColor.YELLOW;
 VestaxVCI380.colorBeatInactive=VestaxVCI380.padColor.dimCYAN;
 VestaxVCI380.colorBeatPushedBpm=VestaxVCI380.padColor.RED;
 VestaxVCI380.colorBeatPushedAlignGrid=VestaxVCI380.padColor.YELLOW;
 VestaxVCI380.colorSamplerEmpty=VestaxVCI380.padColor.dimWHITE;
 VestaxVCI380.colorSamplerLoaded=VestaxVCI380.padColor.GREEN;
 VestaxVCI380.colorSamplerPlaying=VestaxVCI380.padColor.YELLOW;
-VestaxVCI380.colorSamplerPlayingLoop=VestaxVCI380.padColor.WHITE;
 
 // 'Splash screen' : display a customizable color pattern instead of hot cues when no track is loaded
 VestaxVCI380.splashScreen = [["RED", "BLUE", "RED", "BLUE", "BLUE", "RED", "BLUE", "RED"], ["GREEN", "WHITE", "GREEN", "WHITE", "WHITE", "GREEN", "WHITE", "GREEN"]];
