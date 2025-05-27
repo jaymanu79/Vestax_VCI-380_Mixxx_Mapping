@@ -124,10 +124,11 @@ The white buttons control the loop position
 - left (button 7): move left  
 - right (button 8): move right  
 
-### <kbd>ROLL</kbd>: tools mode
-|Button #|Color|Function|
-|---|---|---|
-|1|GREEN|Clone the other deck|
+### <kbd>ROLL</kbd>: Stems mode
+If the loaded track has stems, the pads will light up in vertical pairs with the corresponding stem colors  
+Stems 1 to 4, left to right  
+- Push the lower button to mute/unmute the stem  
+- Maintain the upper button (it will turn white) for FX control. While the button is pressed, the quick effect buttons (FX Depth, FX select and FX on/off) will apply to the selected stem instead of the whole track. (see: quick effects)    
 
 ### <kbd>SAMPLER</kbd> mode (<kbd>SHIFT</kbd> + <kbd>HOT CUE</kbd>)
 In Sampler mode, each pad is controlling one of the samplers.  
