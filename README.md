@@ -2,10 +2,10 @@ This mapping allows using the VESTAX VCI-380 controller with Mixxx DJ software.
 I would appreciate any feedback, suggestions for changes or improvement.
 
 # Where to get Mixxx
-Download Mixxx DJ sofware from [Mixx website](https://mixxx.org/)   
+Download and install Mixxx DJ sofware from [Mixx website](https://mixxx.org/)   
 If you want to use Stems feature, be sure to get [Beta version 2.6](https://mixxx.org/download/#beta). Current stable version 2.5.1 doesn't have the Stems feature yet. 
 
-# How to install
+# How to install the mapping
 - Copy the 2 files `Vestax_VCI-380.midi.xml` and `Vestax-VCI-380-scripts.js` to the "Controllers" folder of Mixxx:
 
 |OS|Folder location|
