@@ -69,13 +69,16 @@ While the pitch is different from zero, the red PAD FX LED will light up as a re
 |---|---|
 |<kbd>SCROLL</kbd> turn|move up/down|
 |<kbd>BACK</kbd> and <kbd>FWD</kbd>|move left/right|
-|Left <kbd>PAD FX</kbd>|move up/down (equivalent to turning SCROLL)|
-|Right <kbd>PAD FX</kbd>|move left/right|
+|Left <kbd>PAD FX</kbd> turn|move up/down (equivalent to turning SCROLL)|
+|Right <kbd>PAD FX</kbd> turn|move left/right|
+|<kbd>PAD FX</kbd> push|Default action|
+|<kbd>SHIFT</kbd> + <kbd>PAD FX</kbd> push|clone other deck|
 |<kbd>AREA</kbd> or any <kbd>PAD FX</kbd> push|Default action|
 |<kbd>SCROLL</kbd> push|change focus zone (<kbd>TAB</kbd>)|
 |<kbd>SORT</kbd>|Sort according to active column|
 |<kbd>JOGSCROLL</kbd>+<kbd>LOAD A</kbd> / <kbd>LOAD B</kbd>|Load selected track into deck A or B|
 |<kbd>VIEW</kbd>|Load and play selected track on preview deck. Push again to stop.|
+
 
 ## Quick Effects
 

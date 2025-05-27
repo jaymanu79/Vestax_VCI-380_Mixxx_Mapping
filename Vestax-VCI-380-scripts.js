@@ -440,7 +440,7 @@ VestaxVCI380.onPadTap = function(channel, control, value, _status) {
             }
             break;
 
-        case 4: // Tools mode
+        case 4: // Stems mode
             switch (padNumber) {
             case 1: // clone from the other deck
                 engine.setValue(`[Channel${deck}]`, "CloneFromDeck", (deck===1 ? 2 : 1));
@@ -506,9 +506,14 @@ VestaxVCI380.onPadFXSelect = function(channel, control, value, _status) {
     }
 };
 
-VestaxVCI380.onPadFXPush = function(_channel, _control, value, _status) {
+VestaxVCI380.onPadFXPush = function(channel, _control, value, _status) {
     if (value===127) {
-	    engine.setValue("[Library]", "GoToItem", 1);
+        const deck = VestaxVCI380.getDeck(channel);
+        if (VestaxVCI380.shiftStatus) {
+            engine.setValue(`[Channel${deck}]`, "CloneFromDeck", (deck===1 ? 2 : 1));
+        } else {
+            engine.setValue("[Library]", "GoToItem", 1);
+        }
     }
 };
 
