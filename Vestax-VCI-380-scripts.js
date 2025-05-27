@@ -614,12 +614,16 @@ VestaxVCI380.makeConnectionsForMode = function(deck, mode) {
 
     case 4 : // stems
         connector=engine.makeConnection(`[Channel${deck}]`,"stem_count", VestaxVCI380.onStemChange);
-        connector.trigger();
-        VestaxVCI380.modeConnections[deck-1].push(connector);
-        numStems=engine.getValue(`[Channel${deck}]`,"stem_count");
-        for (let stem = 1; stem <= numStems; stem++) {
-            VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection(`[Channel${deck}_Stem${stem}]`,"color", VestaxVCI380.onStemChange));
-            VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection(`[Channel${deck}_Stem${stem}]`,"mute", VestaxVCI380.onStemChange));
+        if (connector !== undefined) { // To keep compatibility with Mixxx versions without stem
+            connector.trigger();
+            VestaxVCI380.modeConnections[deck-1].push(connector);
+            numStems=engine.getValue(`[Channel${deck}]`,"stem_count");
+            for (let stem = 1; stem <= numStems; stem++) {
+                VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection(`[Channel${deck}_Stem${stem}]`,"color", VestaxVCI380.onStemChange));
+                VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection(`[Channel${deck}_Stem${stem}]`,"mute", VestaxVCI380.onStemChange));
+            }
+        } else {
+            VestaxVCI380.setPadColorDeck(deck,VestaxVCI380.padColor.OFF);
         }
         break;
 
