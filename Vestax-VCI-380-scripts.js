@@ -355,18 +355,25 @@ VestaxVCI380.onStripMode1 = function(channel, control, value, _status) {
     }
 };
 
-// In modes 2,3 and 4, the strips keep the same functionality as in mode 1
+// In modes 2,3 and 5, the strips keep the same functionality as in mode 1
 VestaxVCI380.onStripMode2 = function(channel, control, value, status) {
     VestaxVCI380.onStripMode1(channel, control, value, status);
 };
 VestaxVCI380.onStripMode3 = function(channel, control, value, status) {
     VestaxVCI380.onStripMode1(channel, control, value, status);
 };
-VestaxVCI380.onStripMode4 = function(channel, control, value, status) {
-    VestaxVCI380.onStripMode1(channel, control, value, status);
-};
 VestaxVCI380.onStripMode5 = function(channel, control, value, status) {
     VestaxVCI380.onStripMode1(channel, control, value, status);
+};
+
+// In mode 4 (Stems), if a stem is selected, the strip will control its volume
+VestaxVCI380.onStripMode4 = function(channel, control, value, status) {
+    const deck=VestaxVCI380.getDeck(channel);
+    if (VestaxVCI380.padMode[deck-1]===4 && VestaxVCI380.pushedButton[deck-1]>=1 && VestaxVCI380.pushedButton[deck-1]<=4) {
+        engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}_Stem${VestaxVCI380.pushedButton[deck-1]}]`,"volume",script.absoluteLin(value,0,1));
+    } else {
+        VestaxVCI380.onStripMode1(channel, control, value, status);
+    }
 };
 
 ////
