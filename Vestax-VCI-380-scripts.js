@@ -539,14 +539,15 @@ VestaxVCI380.onPadFXPush = function(channel, _control, value, _status) {
 };
 
 
-
-////
 // Managing the 5 different modes for the colorpads
 // Modes are :
 // 1 - HOT CUE
-// 2 - FX PARAMETERS
+// 2 - BEAT GRID
 // 3 - LOOP
+// 4 - STEMS
+// 5 - SAMPLER
 ////
+
 VestaxVCI380.padMode=[1, 1];
 VestaxVCI380.onSelectPadMode = function(channel, control, value, _status) {
     if (value === 127) {
