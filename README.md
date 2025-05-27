@@ -83,6 +83,7 @@ For both decks:
 |Action|Effect|
 |---|---|
 |<kbd>FX SELECT</kbd> turn|Select a quick effect preset|  
+|<kbd>FX SELECT</kbd> push|Reset quick effect preset selection|  
 |<kbd>FX ON/OFF</kbd>|Toggle quick effect ON/OFF|
 |<kbd>FX DEPTH</kbd> turn|adjust the effect parameter ("superknob")|
 

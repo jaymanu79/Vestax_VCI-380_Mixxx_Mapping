@@ -8,7 +8,6 @@ var VestaxVCI380 = {};
  * 30sec alarm
  * use for pads velocity ?
  * replace "jog" by scratch
- * unused button : FX SELECT
  * */
 
 // Variables
@@ -721,7 +720,7 @@ VestaxVCI380.onFXSelect = function(channel, control, value, _status) {
     engine.setValue(`[QuickEffectRack1_[Channel${VestaxVCI380.getDeck(channel)}]]`, "chain_preset_selector", value === 0x7F ? 1 : -1);
 };
 VestaxVCI380.onFXSelectPush = function(channel, _control, _value, _status) {
-    engine.setValue(`[EffectRack1_EffectUnit${VestaxVCI380.getDeck(channel)}]`, "group_[Channel1]_enable", 1);
+    engine.setValue(`[QuickEffectRack1_[Channel${VestaxVCI380.getDeck(channel)}]]`, "loaded_chain_preset", 0);
 };
 
 VestaxVCI380.onFXOnOff = function(channel, control, value, _status) {
