@@ -84,6 +84,11 @@ While the pitch is different from zero, the red PAD FX LED will light up as a re
 |<kbd>JOGSCROLL</kbd>+<kbd>LOAD A</kbd> / <kbd>LOAD B</kbd>|Load selected track into deck A or B|
 |<kbd>VIEW</kbd>|Load and play selected track on preview deck. Push again to stop.|
 
+### End-of-track alerts
+
+When a track is playing with less than 30 seconds remaining, the library LEDs will blink.  
+For deck 1: <kbd>AREA</kbd> and <kbd>BACK</kbd>  
+For deck 2: <kbd>SORT</kbd> and <kbd>FWD</kbd>  
 
 ## Quick Effects
 

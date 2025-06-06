@@ -75,6 +75,8 @@ VestaxVCI380.init = function(_id, _debugging) {
     // events connection
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "playposition", VestaxVCI380.updatePlayposition));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "playposition", VestaxVCI380.updatePlayposition));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "play", VestaxVCI380.updatePlayStatus));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "play", VestaxVCI380.updatePlayStatus));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "track_loaded", VestaxVCI380.onTrackLoaded));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "track_loaded", VestaxVCI380.onTrackLoaded));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "quantize", VestaxVCI380.initLEDs));
@@ -573,6 +575,60 @@ VestaxVCI380.onPadFXPush = function(channel, _control, value, _status) {
     }
 };
 
+////
+// Track end alert management
+//
+
+VestaxVCI380.trackEndAlert=[false,false];
+VestaxVCI380.trackEndAlertTimer=[0,0];
+VestaxVCI380.trackEndAlertLEDStatus=[false,false];
+
+VestaxVCI380.enableTrackEndAlert = function (deck,status) {
+    if (status) { // enabling
+        if (!VestaxVCI380.trackEndAlert[deck-1]) { // dont enable if already enabled
+            VestaxVCI380.trackEndAlert[deck-1]=true;
+            VestaxVCI380.trackEndAlertTimer[deck-1]=engine.beginTimer(250,() => {VestaxVCI380.trackEndAlertFlash(deck);});
+        }
+    } else { // disabling
+        if (VestaxVCI380.trackEndAlert[deck-1]) { // dont disable if already disabled
+            VestaxVCI380.trackEndAlert[deck-1]=false;
+            VestaxVCI380.trackEndAlertLEDStatus[deck-1]=false;
+            if (VestaxVCI380.trackEndAlertTimer[deck-1]!==0) {
+                engine.stopTimer(VestaxVCI380.trackEndAlertTimer[deck-1]);
+                VestaxVCI380.trackEndAlertTimer[deck-1]=0;
+            }
+            VestaxVCI380.trackEndAlertNoFlash(deck);
+        }
+    }
+}
+
+VestaxVCI380.trackEndAlertFlash = function (deck) {
+    VestaxVCI380.trackEndAlertLEDStatus[deck-1]=!VestaxVCI380.trackEndAlertLEDStatus[deck-1];
+    if (deck===1) {
+        VestaxVCI380.setLED(1, VestaxVCI380.LED.AREA, VestaxVCI380.trackEndAlertLEDStatus[deck-1]);
+        VestaxVCI380.setLED(1, VestaxVCI380.LED.BACK, VestaxVCI380.trackEndAlertLEDStatus[deck-1]);
+    } else {
+        VestaxVCI380.setLED(1, VestaxVCI380.LED.SORT, VestaxVCI380.trackEndAlertLEDStatus[deck-1]);
+        VestaxVCI380.setLED(1, VestaxVCI380.LED.FWD, VestaxVCI380.trackEndAlertLEDStatus[deck-1]);
+    }
+}
+
+VestaxVCI380.trackEndAlertNoFlash = function (deck) {
+    if (deck===1) {
+        VestaxVCI380.setLED(1, VestaxVCI380.LED.AREA, true);
+        VestaxVCI380.setLED(1, VestaxVCI380.LED.BACK, true);
+    } else {
+        VestaxVCI380.setLED(1, VestaxVCI380.LED.SORT, true);
+        VestaxVCI380.setLED(1, VestaxVCI380.LED.FWD, true);
+    }
+}
+
+VestaxVCI380.updatePlayStatus = function(value, group, _control) {
+    const deck=VestaxVCI380.getDeckFromGroup(group);
+    if (value===0) {
+        VestaxVCI380.enableTrackEndAlert(deck,false);
+    }
+}
 
 // Managing the 5 different modes for the colorpads
 // Modes are :
@@ -1003,6 +1059,13 @@ VestaxVCI380.updatePlayposition = function(value, group, _control) {
     const tickPerSecond=71.11111;
     const elapsedticks=duration*value*tickPerSecond;
     VestaxVCI380.setWheelLED(deck, elapsedticks%128);
+
+    // update track end alert indicator
+    if (value*duration>(duration-30)) { // less than 30 seconds remaining
+        VestaxVCI380.enableTrackEndAlert(deck,true);
+    } else {
+        VestaxVCI380.enableTrackEndAlert(deck,false);
+    }
 };
 
 
