@@ -827,7 +827,7 @@
         </options>
       </control>
       <control>
-        <group>[Channel1]</group>
+        <group>[Channel2]</group>
         <key>VestaxVCI380.onHeadCue</key>
         <status>0x9A</status>
         <midino>0x0A</midino>
