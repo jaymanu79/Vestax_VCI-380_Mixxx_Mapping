@@ -60,7 +60,6 @@ The sliders adjust pitch
 |Action|Effect|
 |---|---|
 |<kbd>SHIFT</kbd> + move slider|reset speed to 1X|  
-|<kbd>SHIFT</kbd> + move slider to topmost position ("-")|brake effect|  
 |<kbd>SHIFT</kbd> + <kbd>RANGE</kbd>|toggle keylock|  
 |<kbd>RANGE</kbd>|toggle quantization|
 
