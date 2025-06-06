@@ -1,13 +1,6 @@
 // eslint-disable-next-line no-var
 var VestaxVCI380 = {};
 
-/*
- * TO DO
- * 30sec alarm
- * use for pads velocity ?
- * replace "jog" by scratch
- * */
-
 // Variables
 VestaxVCI380.beatPos = [0, 0];
 
@@ -159,7 +152,7 @@ VestaxVCI380.onPlay = function(channel, control, value, status, group) {
         if (VestaxVCI380.playLongPress) {
             playStatus === 1 ? engine.brake(deck, true, 0.8) : engine.softStart(deck, true, 10);
         } else {
-            playStatus === 1 ? engine.setValue(group, "play", 0) : engine.setValue(group, "play", 1);
+            playStatus === 1 ? engine.setValue(group, "stop", 1) : engine.setValue(group, "play", 1);
         }
     }
 }
@@ -208,7 +201,6 @@ VestaxVCI380.wheelTurn = function(channel, control, value, _status) {
                 }
             } else {
                 // jog
-                // OBSOLETE : should use scratch
                 engine.setValue(`[Channel${deck}]`, "jog", script.absoluteLin(value, -3, 3));
             }
         }
