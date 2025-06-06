@@ -108,11 +108,11 @@
       </control>
       <control>
         <group>[Channel1]</group>
-        <key>play</key>
+        <key>VestaxVCI380.onPlay</key>
         <status>0x97</status>
         <midino>0x17</midino>
         <options>
-          <button/>
+          <script-binding/>
         </options>
       </control>
       <control>
@@ -135,11 +135,11 @@
       </control>
       <control>
         <group>[Channel2]</group>
-        <key>play</key>
+        <key>VestaxVCI380.onPlay</key>
         <status>0x98</status>
         <midino>0x17</midino>
         <options>
-          <button/>
+          <script-binding/>
         </options>
       </control>
       <control>

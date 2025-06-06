@@ -132,6 +132,39 @@ VestaxVCI380.getDeckFromGroup = function(group) {
 };
 
 ////
+// Play button
+// with soft start and brake
+////
+VestaxVCI380.playLongPress=false;
+VestaxVCI380.playTimer=0;
+
+VestaxVCI380.playAssertLongPress = function() {
+    VestaxVCI380.playLongPress = true;
+    VestaxVCI380.playTimer = 0;
+}
+
+VestaxVCI380.onPlay = function(channel, control, value, status, group) {
+    if (value === 0x7F) {
+        VestaxVCI380.playLongPress=false;
+        VestaxVCI380.playTimer=engine.beginTimer(500, VestaxVCI380.playAssertLongPress, true);
+    } else {
+        const deck=VestaxVCI380.getDeck(channel);
+        const playStatus = engine.getValue(group, "play_indicator");
+
+        if (VestaxVCI380.playTimer !== 0) {
+            engine.stopTimer(VestaxVCI380.playTimer);
+            VestaxVCI380.playTimer = 0;
+        }
+
+        if (VestaxVCI380.playLongPress) {
+            playStatus === 1 ? engine.brake(deck, true, 0.8) : engine.softStart(deck, true, 10);
+        } else {
+            playStatus === 1 ? engine.setValue(group, "play", 0) : engine.setValue(group, "play", 1);
+        }
+    }
+}
+
+////
 // WHEELS
 ////
 
