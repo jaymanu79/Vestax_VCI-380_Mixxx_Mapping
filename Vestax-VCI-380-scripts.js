@@ -294,18 +294,12 @@ VestaxVCI380.onCrossfader = function(channel, control, value, _status) {
 // It sends this value in 2 sequential MIDI messages : MSB then LSB. So we need to implement a memory.
 VestaxVCI380.rateMSB=[0x00, 0x00]; // MSB memory
 VestaxVCI380.onRate = function(channel, control, value, _status) {
-    if (VestaxVCI380.shiftStatus) { // SHIFT + pitchfader resets pitch to 0, or triggers braking/softstart if set near min/max
-        if (control===0x0D) {
-            if  (value >= 0x7E)  { engine.brake(VestaxVCI380.getDeck(channel), 1); } else { engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}]`, "rate", 0); }
-        }
-    } else {
         if (control===0x0D) { // we're receiving the MSB
             VestaxVCI380.rateMSB[VestaxVCI380.getDeck(channel)]=value; // remember the MSB
         } else if (control===0x2D) { // we're receiving the LSB
             // calculate the rate value by combining together the received LSB and the memorized MSB
             engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}]`, "rate", script.absoluteLin(VestaxVCI380.rateMSB[VestaxVCI380.getDeck(channel)]*128+value, -1, 1, 0, 16384));
         }
-    }
 };
 
 ////
