@@ -74,8 +74,9 @@ While the pitch is different from zero, the red PAD FX LED will light up as a re
 |<kbd>SCROLL</kbd> turn|move up/down|
 |<kbd>BACK</kbd> and <kbd>FWD</kbd>|move left/right|
 |Left <kbd>PAD FX</kbd> turn|move up/down (equivalent to turning SCROLL)|
+|<kbd>SHIFT</kbd> + Left <kbd>PAD FX</kbd> turn|page up/down|
 |Right <kbd>PAD FX</kbd> turn|move left/right|
-|<kbd>PAD FX</kbd> push|Default action|
+|<kbd>SHIFT</kbd> + Right <kbd>PAD FX</kbd> turn|adjust waveform zoom|
 |<kbd>SHIFT</kbd> + <kbd>PAD FX</kbd> push|clone other deck|
 |<kbd>AREA</kbd> or any <kbd>PAD FX</kbd> push|Default action|
 |<kbd>SCROLL</kbd> push|change focus zone (<kbd>TAB</kbd>)|

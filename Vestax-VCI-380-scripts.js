@@ -3,8 +3,6 @@ var VestaxVCI380 = {};
 
 /*
  * TO DO
- * pitch scale
- * waveform zoom ?
  * 30sec alarm
  * use for pads velocity ?
  * replace "jog" by scratch
@@ -546,10 +544,20 @@ VestaxVCI380.onPadFXSelect = function(channel, control, value, _status) {
     const deck = VestaxVCI380.getDeck(channel);
     switch (deck) {
     case 1:
-        engine.setValue("[Library]", "MoveVertical", value===0x7f ? -1 : 1);
+        if (VestaxVCI380.shiftStatus) {
+            engine.setValue("[Library]", "ScrollVertical", value===0x7f ? -1 : 1);
+            console.log("scroll vertical " + value);
+        } else {
+            engine.setValue("[Library]", "MoveVertical", value===0x7f ? -1 : 1);
+        }
         break;
     case 2:
-        engine.setValue("[Library]", "MoveHorizontal", value===0x7f ? -1 : 1);
+        if (VestaxVCI380.shiftStatus) {
+            const currentZoom=engine.getValue("[Channel1]", "waveform_zoom");
+            engine.setValue("[Channel1]", "waveform_zoom" , currentZoom + (value==0x7f ? -0.1 : 0.1));
+        } else {
+            engine.setValue("[Library]", "MoveHorizontal", value===0x7f ? -1 : 1);
+        }
         break;
     }
 };

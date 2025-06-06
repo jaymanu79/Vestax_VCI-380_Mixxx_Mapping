@@ -862,6 +862,7 @@
           <script-binding/>
         </options>
       </control>
+
       <control>
         <group>[Channel1]</group>
         <key>VestaxVCI380.onPadFXSelect</key>
@@ -880,6 +881,26 @@
           <script-binding/>
         </options>
       </control>
+
+      <control>
+        <group>[Channel1]</group>
+        <key>VestaxVCI380.onPadFXSelect</key>
+        <status>0xB9</status>
+        <midino>0x0E</midino>
+        <options>
+          <script-binding/>
+        </options>
+      </control>
+      <control>
+        <group>[Channel2]</group>
+        <key>VestaxVCI380.onPadFXSelect</key>
+        <status>0xBA</status>
+        <midino>0x0E</midino>
+        <options>
+          <script-binding/>
+        </options>
+      </control>
+
       <control>
         <group>[Channel1]</group>
         <key>VestaxVCI380.onStripMode4</key>
