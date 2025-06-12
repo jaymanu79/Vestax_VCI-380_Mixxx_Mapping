@@ -29,7 +29,7 @@ VestaxVCI380.colorHotCueActive=VestaxVCI380.padColor.GREEN;
 VestaxVCI380.colorHotcueUnset=VestaxVCI380.padColor.dimBLUE;
 VestaxVCI380.colorHotcueActivate=VestaxVCI380.padColor.CYAN;
 VestaxVCI380.colorHotcueDelete=VestaxVCI380.padColor.RED;
-VestaxVCI380.colorBeatActive=VestaxVCI380.padColor.WHITE;
+VestaxVCI380.colorBeatActive=VestaxVCI380.padColor.RED;
 VestaxVCI380.colorCurrentBeat=VestaxVCI380.padColor.YELLOW;
 VestaxVCI380.colorBeatInactive=VestaxVCI380.padColor.dimCYAN;
 VestaxVCI380.colorBeatPushedBpm=VestaxVCI380.padColor.RED;
@@ -638,7 +638,7 @@ VestaxVCI380.trackEndAlertSetLED = function(deck, state) {
 // Managing the 5 different modes for the colorpads
 // Modes are :
 // 1 - HOT CUE
-// 2 - BEAT GRID
+// 2 - SLICER
 // 3 - LOOP
 // 4 - STEMS
 // 5 - SAMPLER
@@ -662,10 +662,14 @@ VestaxVCI380.onSelectPadMode = function(channel, control, value, _status) {
 
 VestaxVCI380.setMode = function(deck, newMode) {
     const previousMode=VestaxVCI380.padMode[deck-1];
+    if (newMode===2) {
+        VestaxVCI380.slicerLoopMode[deck-1]=VestaxVCI380.shiftStatus;
+    }
     VestaxVCI380.padMode[deck-1]=newMode;
     VestaxVCI380.clearConnectionsForMode(deck, previousMode);
     VestaxVCI380.setPadMode(deck, newMode);
     VestaxVCI380.makeConnectionsForMode(deck, newMode);
+
 };
 
 VestaxVCI380.setPadMode = function(deck, mode) {
@@ -675,7 +679,7 @@ VestaxVCI380.setPadMode = function(deck, mode) {
         break;
     case 2 :
         VestaxVCI380.beatPos[deck-1]=8;
-        VestaxVCI380.setPadColorBeatGridMode(deck);
+        VestaxVCI380.setPadColorSlicerMode(deck);
         break;
     case 3 :
         VestaxVCI380.setPadColorLoopMode(deck);
@@ -789,33 +793,53 @@ VestaxVCI380.onSampler = function(value, group, control) {
     }
 };
 
+// SLICER
+//
+VestaxVCI380.slicerLoopMode = [false,false];
+VestaxVCI380.selectedSlicerDomain = [8, 8];
+VestaxVCI380.slicerBeatsPassed = [0, 0];
+VestaxVCI380.slicerDomains = [8, 16, 32, 64];
+VestaxVCI380.slicerAlreadyJumped= [false, false];
+VestaxVCI380.slicerPreviousBeatsPassed= [0,0];
+
+
 VestaxVCI380.onBeatActive = function(value, group, _control) {
     const deck=VestaxVCI380.getDeckFromGroup(group);
+    const bpm = engine.getValue(group,"bpm");
+    const playposition = engine.getValue(group,"playposition");
+    const duration = engine.getValue(group,"duration");
+    const domain = VestaxVCI380.selectedSlicerDomain[deck-1];
+    const prevBeatPos=VestaxVCI380.beatPos[deck-1];
+    // reverse color for loop mode
+    const colorCurrentBeat=(VestaxVCI380.slicerLoopMode[deck-1] ? VestaxVCI380.colorBeatInactive : VestaxVCI380.colorCurrentBeat);
+    const colorBeatInactive=(VestaxVCI380.slicerLoopMode[deck-1] ? VestaxVCI380.colorCurrentBeat : VestaxVCI380.colorBeatInactive);
     if (VestaxVCI380.padMode[deck-1]===2) {
-        let prevBeatPos;
         switch (value) {
         case 1: // Approaching bar - forward
-            prevBeatPos=VestaxVCI380.beatPos[deck-1];
-            VestaxVCI380.beatPos[deck-1]++;
-            if (VestaxVCI380.beatPos[deck-1]>8) {
-                VestaxVCI380.beatPos[deck-1]=1;
-            }
-            midi.sendShortMsg(0x96+deck, 0x3B+prevBeatPos, VestaxVCI380.colorBeatInactive);
-            midi.sendShortMsg(0x96+deck, 0x3B+VestaxVCI380.beatPos[deck-1], VestaxVCI380.colorBeatActive);
+    VestaxVCI380.slicerBeatsPassed[deck-1] = Math.round((playposition * duration) * (bpm / 60));
+    VestaxVCI380.beatPos[deck-1] = Math.floor((VestaxVCI380.slicerBeatsPassed[deck-1]% domain) / (domain / 8 ));
+                console.log("beat from " + prevBeatPos + " to " + VestaxVCI380.beatPos[deck-1]);
+            midi.sendShortMsg(0x96+deck, 0x3C+prevBeatPos, colorBeatInactive);
+            midi.sendShortMsg(0x96+deck, 0x3C+VestaxVCI380.beatPos[deck-1], VestaxVCI380.colorBeatActive);
             break;
         case 2: // Approaching bar - reverse
-            prevBeatPos=VestaxVCI380.beatPos[deck-1];
-            VestaxVCI380.beatPos[deck-1]--;
-            if (VestaxVCI380.beatPos[deck-1]<1) {
-                VestaxVCI380.beatPos[deck-1]=8;
-            }
-            midi.sendShortMsg(0x96+deck, 0x3B+prevBeatPos, VestaxVCI380.colorBeatInactive);
-            midi.sendShortMsg(0x96+deck, 0x3B+VestaxVCI380.beatPos[deck-1], VestaxVCI380.colorBeatActive);
+    VestaxVCI380.slicerBeatsPassed[deck-1] = Math.round((playposition * duration) * (bpm / 60));
+    VestaxVCI380.beatPos[deck-1] = Math.floor((VestaxVCI380.slicerBeatsPassed[deck-1]% domain) / (domain / 8 ));
+                console.log("beat from " + prevBeatPos + " to " + VestaxVCI380.beatPos[deck-1]);
+            midi.sendShortMsg(0x96+deck, 0x3C+prevBeatPos, colorBeatInactive);
+            midi.sendShortMsg(0x96+deck, 0x3C+VestaxVCI380.beatPos[deck-1], VestaxVCI380.colorBeatActive);
             break;
         case 0: // Getting away from bar
-            midi.sendShortMsg(0x96+deck, 0x3B+VestaxVCI380.beatPos[deck-1], VestaxVCI380.colorCurrentBeat);
+            midi.sendShortMsg(0x96+deck, 0x3C+VestaxVCI380.beatPos[deck-1], colorCurrentBeat);
             break;
         }
+    // Manage loop mode
+    if(VestaxVCI380.slicerLoopMode[deck-1] && ((VestaxVCI380.slicerBeatsPassed[deck-1] - 1) % domain) === (domain - 1) && !VestaxVCI380.slicerAlreadyJumped[deck-1] && VestaxVCI380.slicerPreviousBeatsPassed[deck-1] < VestaxVCI380.slicerBeatsPassed[deck-1]) {
+        engine.setValue(group,"beatjump", -domain);
+        VestaxVCI380.slicerAlreadyJumped[deck-1] = true;
+    } else {
+        VestaxVCI380.slicerAlreadyJumped[deck-1] = false;
+    }
     }
 
 };
@@ -838,7 +862,7 @@ VestaxVCI380.onTrackLoaded = function(value, group, _control) {
             VestaxVCI380.setPadColorHotcuesDeck(deck);
             break;
         case 2:
-            VestaxVCI380.setPadColorBeatGridMode(deck);
+            VestaxVCI380.setPadColorSlicerMode(deck);
             break;
         case 3:
             VestaxVCI380.setPadColorLoopMode(deck);
@@ -1052,8 +1076,8 @@ VestaxVCI380.setPadColorLoopMode = function(deck) {
 };
 
 // Light up the pads of a deck for Beat Grid mode
-VestaxVCI380.setPadColorBeatGridMode = function(deck) {
-    VestaxVCI380.setPadColorDeck(deck, VestaxVCI380.colorBeatInactive);
+VestaxVCI380.setPadColorSlicerMode = function(deck) {
+    VestaxVCI380.setPadColorDeck(deck, VestaxVCI380.slicerLoopMode[deck-1] ? VestaxVCI380.colorCurrentBeat : VestaxVCI380.colorBeatInactive);
 };
 
 // Light up the pads of a deck for Sampler mode
