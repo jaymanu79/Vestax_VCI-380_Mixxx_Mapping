@@ -45,8 +45,7 @@ The LED rings are simulating a vinyl record spin.
 |Key|Function|
 |---|---|
 |<kbd>>/\|\|</kbd>|Play/pause|
-|<kbd>>/\|\|</kbd> held for more than 500ms|Soft start / brake|
-|<kbd>SHIFT</kbd>+<kbd>>/\|\|</kbd>|reverse play|
+|<kbd>SHIFT</kbd>+<kbd>>/\|\|</kbd>|Soft start / brake|
 |<kbd>CUE</kbd>|go to cue point|
 |<kbd>SHIFT</kbd> + <kbd>CUE</kbd>|set the cue point|
 |<kbd>SYNC</kbd>|blinks on each beat. Press to adjust beatgrid position.|

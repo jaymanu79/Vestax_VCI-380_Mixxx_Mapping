@@ -128,28 +128,12 @@ VestaxVCI380.getDeckFromGroup = function(group) {
 // Play button
 // with soft start and brake
 ////
-VestaxVCI380.playLongPress=[false,false];
-VestaxVCI380.playTimer=[0,0];
-
-VestaxVCI380.playAssertLongPress = function(deck) {
-    VestaxVCI380.playLongPress[deck-1] = true;
-    VestaxVCI380.playTimer[deck-1] = 0;
-}
-
 VestaxVCI380.onPlay = function(channel, control, value, status, group) {
     const deck=VestaxVCI380.getDeck(channel);
-    if (value === 0x7F) {
-        VestaxVCI380.playLongPress[deck-1]=false;
-        VestaxVCI380.playTimer[deck-1]=engine.beginTimer(500, () => { VestaxVCI380.playAssertLongPress(deck);}, true);
-    } else {
+    if (value === 0x00) {
         const playStatus = engine.getValue(group, "play");
 
-        if (VestaxVCI380.playTimer[deck-1] !== 0) {
-            engine.stopTimer(VestaxVCI380.playTimer[deck-1]);
-            VestaxVCI380.playTimer[deck-1] = 0;
-        }
-
-        if (VestaxVCI380.playLongPress[deck-1]) {
+        if (VestaxVCI380.shiftStatus) {
             playStatus === 1 ? engine.brake(deck, true, 10) : engine.softStart(deck, true, 10);
         } else {
             playStatus === 1 ? engine.setValue(group, "play", 0) : engine.setValue(group, "play", 1);
