@@ -54,8 +54,10 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.setAllLEDs(true);
 
     // Optional: Set the samplerate to 48KHz, the only rate accepted by the VCI380 integrated soundcard
-    if (engine.getSetting("autoSampleRate")) {
-        engine.setValue("[App]", "samplerate", 48000);
+    if ('getSetting' in engine) {
+       if (engine.getSetting("autoSampleRate")) {
+           engine.setValue("[App]", "samplerate", 48000);
+       }
     }
 
     // soft takeover
@@ -524,7 +526,6 @@ VestaxVCI380.onPadFXSelect = function(channel, control, value, _status) {
     case 1:
         if (VestaxVCI380.shiftStatus) {
             engine.setValue("[Library]", "ScrollVertical", value===0x7f ? -1 : 1);
-            console.log("scroll vertical " + value);
         } else {
             engine.setValue("[Library]", "MoveVertical", value===0x7f ? -1 : 1);
         }

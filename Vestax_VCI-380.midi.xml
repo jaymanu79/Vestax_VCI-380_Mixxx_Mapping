@@ -10,7 +10,7 @@
         <option
             variable="autoSampleRate"
             type="boolean"
-            default="true"
+            default="false"
             label="Automatically set sample rate to 48000 Hz">
             <description>
                 If using the VCI-380 integrated soundcard, it will refuse to work
