@@ -54,10 +54,10 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.setAllLEDs(true);
 
     // Optional: Set the samplerate to 48KHz, the only rate accepted by the VCI380 integrated soundcard
-    if ('getSetting' in engine) {
-       if (engine.getSetting("autoSampleRate")) {
-           engine.setValue("[App]", "samplerate", 48000);
-       }
+    if ("getSetting" in engine) {
+        if (engine.getSetting("autoSampleRate")) {
+            engine.setValue("[App]", "samplerate", 48000);
+        }
     }
 
     // soft takeover
@@ -136,12 +136,20 @@ VestaxVCI380.onPlay = function(channel, control, value, status, group) {
         const playStatus = engine.getValue(group, "play");
 
         if (VestaxVCI380.shiftStatus) {
-            playStatus === 1 ? engine.brake(deck, true, 10) : engine.softStart(deck, true, 10);
+            if (playStatus === 1) {
+                engine.brake(deck, true, 10);
+            } else {
+                engine.softStart(deck, true, 10);
+            }
         } else {
-            playStatus === 1 ? engine.setValue(group, "play", 0) : engine.setValue(group, "play", 1);
+            if (playStatus === 1) {
+                engine.setValue(group, "play", 0);
+            } else {
+                engine.setValue(group, "play", 1);
+            }
         }
     }
-}
+};
 
 ////
 // WHEELS
@@ -272,12 +280,12 @@ VestaxVCI380.onCrossfader = function(channel, control, value, _status) {
 // It sends this value in 2 sequential MIDI messages : MSB then LSB. So we need to implement a memory.
 VestaxVCI380.rateMSB=[0x00, 0x00]; // MSB memory
 VestaxVCI380.onRate = function(channel, control, value, _status) {
-        if (control===0x0D) { // we're receiving the MSB
-            VestaxVCI380.rateMSB[VestaxVCI380.getDeck(channel)]=value; // remember the MSB
-        } else if (control===0x2D) { // we're receiving the LSB
-            // calculate the rate value by combining together the received LSB and the memorized MSB
-            engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}]`, "rate", script.absoluteLin(VestaxVCI380.rateMSB[VestaxVCI380.getDeck(channel)]*128+value, -1, 1, 0, 16384));
-        }
+    if (control===0x0D) { // we're receiving the MSB
+        VestaxVCI380.rateMSB[VestaxVCI380.getDeck(channel)]=value; // remember the MSB
+    } else if (control===0x2D) { // we're receiving the LSB
+        // calculate the rate value by combining together the received LSB and the memorized MSB
+        engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}]`, "rate", script.absoluteLin(VestaxVCI380.rateMSB[VestaxVCI380.getDeck(channel)]*128+value, -1, 1, 0, 16384));
+    }
 };
 
 ////
@@ -375,7 +383,7 @@ VestaxVCI380.onStripMode5 = function(channel, control, value, status) {
 VestaxVCI380.onStripMode4 = function(channel, control, value, status) {
     const deck=VestaxVCI380.getDeck(channel);
     if (VestaxVCI380.padMode[deck-1]===4 && VestaxVCI380.pushedButton[deck-1]>=1 && VestaxVCI380.pushedButton[deck-1]<=4) {
-        engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}_Stem${VestaxVCI380.pushedButton[deck-1]}]`,"volume",script.absoluteLin(value,0,1));
+        engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}_Stem${VestaxVCI380.pushedButton[deck-1]}]`, "volume", script.absoluteLin(value, 0, 1));
     } else {
         VestaxVCI380.onStripMode1(channel, control, value, status);
     }
@@ -385,15 +393,15 @@ VestaxVCI380.onStripMode4 = function(channel, control, value, status) {
 // COLOR PADS
 ////
 
-// currently pushed button 
+// currently pushed button
 VestaxVCI380.pushedButton=[0, 0];
 
 // when tapped (used as buttons)
 VestaxVCI380.onPadTap = function(channel, control, value, _status) {
     const deck = VestaxVCI380.getDeck(channel);
     const padNumber= control - 0x3B;
-    let samplerNumber=0;
-    let group="";
+    let samplerNumber;
+    let group;
     if (value>0x00) { // PAD pressed
         VestaxVCI380.pushedButton[deck-1]=padNumber;
         switch (VestaxVCI380.padMode[deck-1]) {
@@ -461,14 +469,14 @@ VestaxVCI380.onPadTap = function(channel, control, value, _status) {
             case 2:
             case 3:
             case 4: // select stem for FX and volume
-                midi.sendShortMsg(0x96+deck, 0x3B+padNumber  , VestaxVCI380.padColor.WHITE);    
+                midi.sendShortMsg(0x96+deck, 0x3B+padNumber, VestaxVCI380.padColor.WHITE);
                 break;
             case 5:
             case 6:
             case 7:
             case 8: // mute/unmute stem
                 group=`[Channel${deck}_Stem${padNumber-4}]`;
-                engine.setValue(group, "mute", (engine.getValue(group,"mute")===0 ? 1 : 0));
+                engine.setValue(group, "mute", (engine.getValue(group, "mute")===0 ? 1 : 0));
                 break;
             }
             break;
@@ -533,7 +541,7 @@ VestaxVCI380.onPadFXSelect = function(channel, control, value, _status) {
     case 2:
         if (VestaxVCI380.shiftStatus) {
             const currentZoom=engine.getValue("[Channel1]", "waveform_zoom");
-            engine.setValue("[Channel1]", "waveform_zoom" , currentZoom + (value==0x7f ? -0.1 : 0.1));
+            engine.setValue("[Channel1]", "waveform_zoom", currentZoom + (value===0x7f ? -0.1 : 0.1));
         } else {
             engine.setValue("[Library]", "MoveHorizontal", value===0x7f ? -1 : 1);
         }
@@ -556,15 +564,15 @@ VestaxVCI380.onPadFXPush = function(channel, _control, value, _status) {
 // Track end alert management
 //
 
-VestaxVCI380.trackEndAlert=[false,false];
-VestaxVCI380.trackEndAlertTimer=[0,0];
-VestaxVCI380.trackEndAlertLEDStatus=[false,false];
+VestaxVCI380.trackEndAlert=[false, false];
+VestaxVCI380.trackEndAlertTimer=[0, 0];
+VestaxVCI380.trackEndAlertLEDStatus=[false, false];
 
-VestaxVCI380.enableTrackEndAlert = function (deck,status) {
+VestaxVCI380.enableTrackEndAlert = function(deck, status) {
     if (status) { // enabling
         if (!VestaxVCI380.trackEndAlert[deck-1]) { // dont enable if already enabled
             VestaxVCI380.trackEndAlert[deck-1]=true;
-            VestaxVCI380.trackEndAlertTimer[deck-1]=engine.beginTimer(250,() => {VestaxVCI380.trackEndAlertFlash(deck);});
+            VestaxVCI380.trackEndAlertTimer[deck-1]=engine.beginTimer(250, () => { VestaxVCI380.trackEndAlertFlash(deck); });
         }
     } else { // disabling
         if (VestaxVCI380.trackEndAlert[deck-1]) { // dont disable if already disabled
@@ -577,9 +585,9 @@ VestaxVCI380.enableTrackEndAlert = function (deck,status) {
             VestaxVCI380.trackEndAlertNoFlash(deck);
         }
     }
-}
+};
 
-VestaxVCI380.trackEndAlertFlash = function (deck) {
+VestaxVCI380.trackEndAlertFlash = function(deck) {
     VestaxVCI380.trackEndAlertLEDStatus[deck-1]=!VestaxVCI380.trackEndAlertLEDStatus[deck-1];
     if (deck===1) {
         VestaxVCI380.setLED(1, VestaxVCI380.LED.AREA, VestaxVCI380.trackEndAlertLEDStatus[deck-1]);
@@ -588,9 +596,9 @@ VestaxVCI380.trackEndAlertFlash = function (deck) {
         VestaxVCI380.setLED(1, VestaxVCI380.LED.SORT, VestaxVCI380.trackEndAlertLEDStatus[deck-1]);
         VestaxVCI380.setLED(1, VestaxVCI380.LED.FWD, VestaxVCI380.trackEndAlertLEDStatus[deck-1]);
     }
-}
+};
 
-VestaxVCI380.trackEndAlertNoFlash = function (deck) {
+VestaxVCI380.trackEndAlertNoFlash = function(deck) {
     if (deck===1) {
         VestaxVCI380.setLED(1, VestaxVCI380.LED.AREA, true);
         VestaxVCI380.setLED(1, VestaxVCI380.LED.BACK, true);
@@ -598,14 +606,14 @@ VestaxVCI380.trackEndAlertNoFlash = function (deck) {
         VestaxVCI380.setLED(1, VestaxVCI380.LED.SORT, true);
         VestaxVCI380.setLED(1, VestaxVCI380.LED.FWD, true);
     }
-}
+};
 
 VestaxVCI380.updatePlayStatus = function(value, group, _control) {
     const deck=VestaxVCI380.getDeckFromGroup(group);
     if (value===0) {
-        VestaxVCI380.enableTrackEndAlert(deck,false);
+        VestaxVCI380.enableTrackEndAlert(deck, false);
     }
-}
+};
 
 // Managing the 5 different modes for the colorpads
 // Modes are :
@@ -618,9 +626,9 @@ VestaxVCI380.updatePlayStatus = function(value, group, _control) {
 
 VestaxVCI380.padMode=[1, 1];
 VestaxVCI380.onSelectPadMode = function(channel, control, value, _status) {
+    let newMode;
     if (value === 127) {
         const deck = VestaxVCI380.getDeck(channel);
-        let newMode=0;
         if (channel>=9) {
             newMode=5; // special case of shift + HOT CUE MODE, 5th mode
         } else {
@@ -682,17 +690,17 @@ VestaxVCI380.makeConnectionsForMode = function(deck, mode) {
         break;
 
     case 4 : // stems
-        connector=engine.makeConnection(`[Channel${deck}]`,"stem_count", VestaxVCI380.onStemChange);
+        connector=engine.makeConnection(`[Channel${deck}]`, "stem_count", VestaxVCI380.onStemChange);
         if (connector !== undefined) { // To keep compatibility with Mixxx versions without stem
             connector.trigger();
             VestaxVCI380.modeConnections[deck-1].push(connector);
-            numStems=engine.getValue(`[Channel${deck}]`,"stem_count");
+            numStems=engine.getValue(`[Channel${deck}]`, "stem_count");
             for (let stem = 1; stem <= numStems; stem++) {
-                VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection(`[Channel${deck}_Stem${stem}]`,"color", VestaxVCI380.onStemChange));
-                VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection(`[Channel${deck}_Stem${stem}]`,"mute", VestaxVCI380.onStemChange));
+                VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection(`[Channel${deck}_Stem${stem}]`, "color", VestaxVCI380.onStemChange));
+                VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection(`[Channel${deck}_Stem${stem}]`, "mute", VestaxVCI380.onStemChange));
             }
         } else {
-            VestaxVCI380.setPadColorDeck(deck,VestaxVCI380.padColor.OFF);
+            VestaxVCI380.setPadColorDeck(deck, VestaxVCI380.padColor.OFF);
         }
         break;
 
@@ -715,25 +723,25 @@ VestaxVCI380.clearConnectionsForMode = function(deck, _mode) {
     };
 };
 
-VestaxVCI380.onStemChange = function(value, group, control) {
+VestaxVCI380.onStemChange = function(value, group, _control) {
     const deck=VestaxVCI380.getDeckFromGroup(group);
     VestaxVCI380.refreshPadsStem(deck);
-}
+};
 
 
 VestaxVCI380.refreshPadsStem = function(deck) {
-    let numStems=engine.getValue(`[Channel${deck}]`,"stem_count");
+    const numStems=engine.getValue(`[Channel${deck}]`, "stem_count");
     for (let stem = 1; stem <= numStems; stem++) {
-        let stemColor=VestaxVCI380.ColorMapper.getValueForNearestColor(engine.getValue(`[Channel${deck}_Stem${stem}]`,"color"));
-        let stemColorDim=stemColor-8;
-       midi.sendShortMsg(0x96+deck, 0x3B+stem  , stemColor); 
-       midi.sendShortMsg(0x96+deck, 0x3B+stem+4, engine.getValue(`[Channel${deck}_Stem${stem}]`,"mute")===0 ? stemColor : stemColorDim); 
+        const stemColor=VestaxVCI380.ColorMapper.getValueForNearestColor(engine.getValue(`[Channel${deck}_Stem${stem}]`, "color"));
+        const stemColorDim=stemColor-8;
+        midi.sendShortMsg(0x96+deck, 0x3B+stem, stemColor);
+        midi.sendShortMsg(0x96+deck, 0x3B+stem+4, engine.getValue(`[Channel${deck}_Stem${stem}]`, "mute")===0 ? stemColor : stemColorDim);
     }
-    for (let emptyStem=numStems+1; emptyStem <= 4;emptyStem++) {
-        midi.sendShortMsg(0x96+deck, 0x3B+emptyStem  , VestaxVCI380.padColor.dimWHITE); 
-        midi.sendShortMsg(0x96+deck, 0x3B+emptyStem+4, VestaxVCI380.padColor.dimWHITE); 
+    for (let emptyStem=numStems+1; emptyStem <= 4; emptyStem++) {
+        midi.sendShortMsg(0x96+deck, 0x3B+emptyStem, VestaxVCI380.padColor.dimWHITE);
+        midi.sendShortMsg(0x96+deck, 0x3B+emptyStem+4, VestaxVCI380.padColor.dimWHITE);
     }
-}
+};
 
 VestaxVCI380.onHotcueUpdated = function(value, group, _control) {
     const deck=VestaxVCI380.getDeckFromGroup(group);
@@ -832,32 +840,32 @@ VestaxVCI380.onLoopEnabled = function(value, group, _control) {
 // Managing effects
 ////
 
-VestaxVCI380.getFXGroup = function (channel) {
+VestaxVCI380.getFXGroup = function(channel) {
     const deck=VestaxVCI380.getDeck(channel);
     if (VestaxVCI380.padMode[deck-1]===4 && VestaxVCI380.pushedButton[deck-1]>=1 && VestaxVCI380.pushedButton[deck-1]<=4) {
-        return(`[QuickEffectRack1_[Channel${VestaxVCI380.getDeck(channel)}_Stem${VestaxVCI380.pushedButton[deck-1]}]]`);
+        return (`[QuickEffectRack1_[Channel${VestaxVCI380.getDeck(channel)}_Stem${VestaxVCI380.pushedButton[deck-1]}]]`);
     } else {
-        return(`[QuickEffectRack1_[Channel${VestaxVCI380.getDeck(channel)}]]`);
+        return (`[QuickEffectRack1_[Channel${VestaxVCI380.getDeck(channel)}]]`);
     }
 };
 
-VestaxVCI380.onFXDepth = function(channel, control, value, _status) { 
-    let group=VestaxVCI380.getFXGroup(channel);
+VestaxVCI380.onFXDepth = function(channel, control, value, _status) {
+    const group=VestaxVCI380.getFXGroup(channel);
     engine.setValue(group, "super1", script.absoluteLin(value, 0, 1));
 };
 
 VestaxVCI380.onFXSelect = function(channel, control, value, _status) {
-    let group=VestaxVCI380.getFXGroup(channel);
+    const group=VestaxVCI380.getFXGroup(channel);
     engine.setValue(group, "chain_preset_selector", value === 0x7F ? 1 : -1);
 };
 
 VestaxVCI380.onFXSelectPush = function(channel, _control, _value, _status) {
-    let group=VestaxVCI380.getFXGroup(channel);
+    const group=VestaxVCI380.getFXGroup(channel);
     engine.setValue(group, "loaded_chain_preset", 0);
 };
 
 VestaxVCI380.onFXOnOff = function(channel, control, value, _status) {
-    let group=VestaxVCI380.getFXGroup(channel);
+    const group=VestaxVCI380.getFXGroup(channel);
     engine.setValue(group, "enabled", (value === 0x7F) ? 1 : 0);
 };
 
@@ -1039,9 +1047,9 @@ VestaxVCI380.updatePlayposition = function(value, group, _control) {
 
     // update track end alert indicator
     if (value*duration>(duration-30)) { // less than 30 seconds remaining
-        VestaxVCI380.enableTrackEndAlert(deck,true);
+        VestaxVCI380.enableTrackEndAlert(deck, true);
     } else {
-        VestaxVCI380.enableTrackEndAlert(deck,false);
+        VestaxVCI380.enableTrackEndAlert(deck, false);
     }
 };
 
