@@ -170,10 +170,10 @@ VestaxVCI380.wheelTouch = function(channel, control, value, _status) {
         const alpha = 1.0/8;
         const beta = alpha/32;
         engine.scratchEnable(VestaxVCI380.getDeck(channel), tpr, 33+1/3, alpha, beta);
-        VestaxVCI380.isScratching[VestaxVCI380.getDeck(channel)]=true;
+        VestaxVCI380.isScratching[VestaxVCI380.getDeck(channel)-1]=true;
     } else {    // If button up
         engine.scratchDisable(VestaxVCI380.getDeck(channel));
-        VestaxVCI380.isScratching[VestaxVCI380.getDeck(channel)]=false;
+        VestaxVCI380.isScratching[VestaxVCI380.getDeck(channel)-1]=false;
     }
 };
 // The wheel that actually controls the scratching
@@ -181,7 +181,7 @@ VestaxVCI380.tickCounter = 0;
 VestaxVCI380.wheelTurn = function(channel, control, value, _status) {
     const deck=VestaxVCI380.getDeck(channel);
     if (!VestaxVCI380.jogScrollStatus) {
-        if (VestaxVCI380.isScratching[deck]) { // scratching
+        if (VestaxVCI380.isScratching[deck-1]) { // scratching
             const newValue=(value-64);
             engine.scratchTick(deck, newValue);
         } else { // not scratching = jog mode, or beatjump if shift is pressed
@@ -279,10 +279,10 @@ VestaxVCI380.onCrossfader = function(channel, control, value, _status) {
 VestaxVCI380.rateMSB=[0x00, 0x00]; // MSB memory
 VestaxVCI380.onRate = function(channel, control, value, _status) {
     if (control===0x0D) { // we're receiving the MSB
-        VestaxVCI380.rateMSB[VestaxVCI380.getDeck(channel)]=value; // remember the MSB
+        VestaxVCI380.rateMSB[VestaxVCI380.getDeck(channel)-1]=value; // remember the MSB
     } else if (control===0x2D) { // we're receiving the LSB
         // calculate the rate value by combining together the received LSB and the memorized MSB
-        engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}]`, "rate", script.absoluteLin(VestaxVCI380.rateMSB[VestaxVCI380.getDeck(channel)]*128+value, -1, 1, 0, 16384));
+        engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}]`, "rate", script.absoluteLin(VestaxVCI380.rateMSB[VestaxVCI380.getDeck(channel)-1]*128+value, -1, 1, 0, 16384));
     }
 };
 
@@ -1060,8 +1060,8 @@ VestaxVCI380.wheelLEDPosition=[0xFF, 0xFF];
 // Light up the LED according to the provided value in MIDI range (00-7F)
 // NOTE : I couldn't find how to set the LED OFF. It will stay forever on the last set position. Any help appreciated.
 VestaxVCI380.setWheelLED = function(deck, value) {
-    if (VestaxVCI380.wheelLEDPosition[deck]!==value) { // save up unneeded MIDI outgoing messages
+    if (VestaxVCI380.wheelLEDPosition[deck-1]!==value) { // save up unneeded MIDI outgoing messages
         midi.sendShortMsg(0xB6+deck, 0x03, value);
-        VestaxVCI380.wheelLEDPosition[deck]=value;
+        VestaxVCI380.wheelLEDPosition[deck-1]=value;
     }
 };
