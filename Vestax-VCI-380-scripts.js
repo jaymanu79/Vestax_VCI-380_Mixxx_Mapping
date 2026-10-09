@@ -540,8 +540,10 @@ VestaxVCI380.onPadFXSelect = function(channel, control, value, _status) {
         break;
     case 2:
         if (VestaxVCI380.shiftStatus) {
+            // we set the same zoom value for both decks
             const currentZoom=engine.getValue("[Channel1]", "waveform_zoom");
             engine.setValue("[Channel1]", "waveform_zoom", currentZoom + (value===0x7f ? -0.1 : 0.1));
+            engine.setValue("[Channel2]", "waveform_zoom", currentZoom + (value===0x7f ? -0.1 : 0.1));
         } else {
             engine.setValue("[Library]", "MoveHorizontal", value===0x7f ? -1 : 1);
         }
