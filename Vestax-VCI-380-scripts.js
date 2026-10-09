@@ -177,7 +177,7 @@ VestaxVCI380.wheelTouch = function(channel, control, value, _status) {
     }
 };
 // The wheel that actually controls the scratching
-VestaxVCI380.tickCounter = [ 0, 0 ];
+VestaxVCI380.tickCounter = [0, 0];
 VestaxVCI380.wheelTurn = function(channel, control, value, _status) {
     const deck=VestaxVCI380.getDeck(channel);
     if (!VestaxVCI380.jogScrollStatus) {
@@ -863,8 +863,8 @@ VestaxVCI380.onFXSelect = function(channel, control, value, _status) {
 
 VestaxVCI380.onFXSelectPush = function(channel, _control, _value, _status) {
     if (_value === 0x7F) {
-      const group=VestaxVCI380.getFXGroup(channel);
-      engine.setValue(group, "loaded_chain_preset", 1);
+        const group=VestaxVCI380.getFXGroup(channel);
+        engine.setValue(group, "loaded_chain_preset", 1);
     }
 };
 
