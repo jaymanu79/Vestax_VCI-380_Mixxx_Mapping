@@ -76,7 +76,7 @@
         <status>0xB7</status>
         <midino>0x07</midino>
         <options>
-          <normal/>
+          <soft-takeover/>
         </options>
       </control>
       <control>
@@ -94,7 +94,7 @@
         <status>0xB8</status>
         <midino>0x07</midino>
         <options>
-          <normal/>
+          <soft-takeover/>
         </options>
       </control>
       <control>

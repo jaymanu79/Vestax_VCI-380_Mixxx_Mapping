@@ -61,8 +61,6 @@ VestaxVCI380.init = function(_id, _debugging) {
     }
 
     // soft takeover
-    engine.softTakeover("[Channel1]", "volume", true);
-    engine.softTakeover("[Channel2]", "volume", true);
     engine.softTakeover("[Master]", "crossfader", true);
     engine.softTakeover("[QuickEffectRack1_[Channel1]]", "super1", true);
     engine.softTakeover("[QuickEffectRack1_[Channel2]]", "super1", true);
