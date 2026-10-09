@@ -177,7 +177,7 @@ VestaxVCI380.wheelTouch = function(channel, control, value, _status) {
     }
 };
 // The wheel that actually controls the scratching
-VestaxVCI380.tickCounter = 0;
+VestaxVCI380.tickCounter = [ 0, 0 ];
 VestaxVCI380.wheelTurn = function(channel, control, value, _status) {
     const deck=VestaxVCI380.getDeck(channel);
     if (!VestaxVCI380.jogScrollStatus) {
@@ -187,9 +187,9 @@ VestaxVCI380.wheelTurn = function(channel, control, value, _status) {
         } else { // not scratching = jog mode, or beatjump if shift is pressed
             if (VestaxVCI380.shiftStatus) {
                 // beatjump
-                if (++VestaxVCI380.tickCounter >100)  {
+                if (++VestaxVCI380.tickCounter[deck-1] >100)  {
                     engine.setValue(`[Channel${deck}]`, `beatjump_${(value < 64) ? "backward" : "forward"}`, 1);
-                    VestaxVCI380.tickCounter=0;
+                    VestaxVCI380.tickCounter[deck-1]=0;
                 }
             } else {
                 // jog
@@ -198,8 +198,8 @@ VestaxVCI380.wheelTurn = function(channel, control, value, _status) {
         }
     } else {
         // JOG scroll in playlist
-        if (++VestaxVCI380.tickCounter >15) {
-            VestaxVCI380.tickCounter=0;
+        if (++VestaxVCI380.tickCounter[deck-1] >15) {
+            VestaxVCI380.tickCounter[deck-1]=0;
             engine.setValue("[Library]", "MoveVertical", value<64 ? -1 : 1);
         }
     }

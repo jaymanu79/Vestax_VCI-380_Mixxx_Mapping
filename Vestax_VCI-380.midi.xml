@@ -1124,7 +1124,7 @@
       </output>
       <output>
         <group>[Channel2]</group>
-        <key>play</key>
+        <key>play_indicator</key>
         <status>0x98</status>
         <midino>0x17</midino>
         <minimum>0.5</minimum>
