@@ -311,13 +311,13 @@ VestaxVCI380.onRange = function(channel, control, value, _status) {
 
 
 // VINYL button used as slip mode
-VestaxVCI380.slipMode=false;
 VestaxVCI380.onVinyl = function(channel, control, value, _status) {
     if  (value===0x7F) {
         const deck=VestaxVCI380.getDeck(channel);
-        VestaxVCI380.slipMode=!VestaxVCI380.slipMode;
-        VestaxVCI380.setLED(deck, VestaxVCI380.LED.VINYL, VestaxVCI380.slipMode);
-        engine.setValue(`[Channel${  deck  }]`, "slip_enabled", VestaxVCI380.slipMode);
+        const group = `[Channel${deck}]`;
+        const newState = !engine.getValue(group, "slip_enabled");
+        VestaxVCI380.setLED(deck, VestaxVCI380.LED.VINYL, newState);
+        engine.setValue(`[Channel${  deck  }]`, "slip_enabled", newState);
     }
 };
 
