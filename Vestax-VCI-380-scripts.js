@@ -860,8 +860,10 @@ VestaxVCI380.onFXSelect = function(channel, control, value, _status) {
 };
 
 VestaxVCI380.onFXSelectPush = function(channel, _control, _value, _status) {
-    const group=VestaxVCI380.getFXGroup(channel);
-    engine.setValue(group, "loaded_chain_preset", 0);
+    if (_value === 0x7F) {
+      const group=VestaxVCI380.getFXGroup(channel);
+      engine.setValue(group, "loaded_chain_preset", 1);
+    }
 };
 
 VestaxVCI380.onFXOnOff = function(channel, control, value, _status) {
