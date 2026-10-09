@@ -85,7 +85,7 @@ Turn wheels with :hwlabel:`JOG SCROLL`                 library scrolling
 Key                                                Function
 ================================================== =======================================================
 :hwlabel:`> / ||`                                  play/pause
-:hwlabel:`SHIFT` + :hwlabel:`>/\|\|`               soft start / brake
+:hwlabel:`SHIFT` + :hwlabel:`> / ||`               soft start / brake
 :hwlabel:`CUE`                                     go to cue point
 :hwlabel:`SHIFT` + :hwlabel:`CUE`                  set the cue point
 :hwlabel:`SYNC`                                    blinks on each beat. Press to activate auto-sync.
@@ -144,14 +144,14 @@ Quick Effects
 
 For both decks:
 
-================================================== =========================================
+================================================== ==============================================
 Action                                             Effect
-================================================== =========================================
+================================================== ==============================================
 turn :hwlabel:`FX SELECT`                          select a quick effect preset
-push :hwlabel:`FX SELECT`                          reset quick effect preset selection
+push :hwlabel:`FX SELECT`                          load the first quick effect preset of the list
 :hwlabel:`FX ON/OFF`                               toggle quick effect ON/OFF
 turn :hwlabel:`DEPTH`                              adjust the effect parameter ("superknob")
-================================================== =========================================
+================================================== ==============================================
 
 Performance pads and strips
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
