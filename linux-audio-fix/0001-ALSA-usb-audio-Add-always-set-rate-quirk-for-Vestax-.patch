@@ -1,0 +1,39 @@
+From 88aebda0dcffe8cbadf19cd918791cac15c7279c Mon Sep 17 00:00:00 2001
+From: JM Jacinto <jjacinto@free.fr>
+Date: Wed, 21 Oct 2026 12:22:49 +0200
+Subject: [PATCH] ALSA: usb-audio: Add always-set-rate quirk for Vestax VCI-380
+
+The Vestax VCI-380 DJ controller (UAC2, single internal clock, 48 kHz
+only) reports 48000 Hz on its clock source right after power on, but
+only configures its clock when it receives a SET_CUR sampling frequency
+request. Since the reported rate already matches, the driver never sends
+it, and the capture stream is corrupted: a block of samples is dropped
+or repeated every ~90 frames (about 140 discontinuities per second,
+heard as choppy sound). Playback is not affected.
+
+The Windows driver always sends the request, which is why the inputs
+work after the controller has been used on Windows without being
+switched off. Sending a single SET_CUR of 48000 Hz to the clock source
+(ID 41) from Linux fixes the capture stream until the next power cycle.
+
+Apply QUIRK_FLAG_ALWAYS_SET_RATE to the device.
+---
+ sound/usb/quirks.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/sound/usb/quirks.c b/sound/usb/quirks.c
+index a54fabc..a7e5c38 100644
+--- a/sound/usb/quirks.c
++++ b/sound/usb/quirks.c
+@@ -2464,6 +2464,8 @@ static const struct usb_audio_quirk_flags_table quirk_flags_table[] = {
+ 		   QUIRK_FLAG_MIXER_PLAYBACK_MIN_MUTE),
+ 	DEVICE_FLG(0x19f7, 0x0035, /* RODE NT-USB+ */
+ 		   QUIRK_FLAG_GET_SAMPLE_RATE),
++	DEVICE_FLG(0x1aa1, 0x0240, /* Vestax VCI-380 */
++		   QUIRK_FLAG_ALWAYS_SET_RATE),
+ 	DEVICE_FLG(0x1bcf, 0x2281, /* HD Webcam */
+ 		   QUIRK_FLAG_GET_SAMPLE_RATE | QUIRK_FLAG_MIC_RES_16),
+ 	DEVICE_FLG(0x1bcf, 0x2283, /* NexiGo N930AF FHD Webcam */
+-- 
+2.43.0
+
