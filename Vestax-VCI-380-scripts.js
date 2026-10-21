@@ -60,10 +60,7 @@ VestaxVCI380.init = function(_id, _debugging) {
         }
     }
 
-    // soft takeover
-    engine.softTakeover("[Master]", "crossfader", true);
-    engine.softTakeover("[QuickEffectRack1_[Channel1]]", "super1", true);
-    engine.softTakeover("[QuickEffectRack1_[Channel2]]", "super1", true);
+    // soft takeover: enabled once the controller has sent its initial state (see syncWithController)
 
     // events connection
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "playposition", VestaxVCI380.updatePlayposition));
@@ -94,6 +91,40 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.setPadColorSplash(1);
     VestaxVCI380.setPadColorSplash(2);
 
+    // align Mixxx with the current position of the faders, knobs and switches
+    VestaxVCI380.syncWithController();
+};
+
+////
+// Initial state
+// The VCI-380 answers the MIDI Universal Identity Request by sending the current
+// state of all its controls (faders, knobs, pitch, crossfader, pad mode, headphone
+// cue and FX ON switches), through the usual MIDI messages and so the usual handlers.
+////
+
+VestaxVCI380.IDENTITY_REQUEST = [0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7];
+
+// controls with soft takeover set from the script
+VestaxVCI380.softTakeoverControls = [
+    ["[Master]", "crossfader"],
+    ["[QuickEffectRack1_[Channel1]]", "super1"],
+    ["[QuickEffectRack1_[Channel2]]", "super1"],
+];
+
+VestaxVCI380.setSoftTakeover = function(enable) {
+    VestaxVCI380.softTakeoverControls.forEach(function(control) {
+        engine.softTakeover(control[0], control[1], enable);
+    });
+};
+
+VestaxVCI380.syncWithController = function() {
+    // soft takeover would ignore the initial values when they are far from Mixxx's ones:
+    // keep it off until the controller has sent its state
+    VestaxVCI380.setSoftTakeover(false);
+    midi.sendSysexMsg(VestaxVCI380.IDENTITY_REQUEST, VestaxVCI380.IDENTITY_REQUEST.length);
+    engine.beginTimer(1000, function() {
+        VestaxVCI380.setSoftTakeover(true);
+    }, true);
 };
 
 
@@ -636,7 +667,9 @@ VestaxVCI380.onSelectPadMode = function(channel, control, value, _status) {
         } else {
             newMode=control-0x37;
         }
-        VestaxVCI380.setMode(deck, newMode);
+        if (newMode !== VestaxVCI380.padMode[deck-1]) { // the initial state may repeat the current mode
+            VestaxVCI380.setMode(deck, newMode);
+        }
     }
 };
 
@@ -646,6 +679,10 @@ VestaxVCI380.setMode = function(deck, newMode) {
     VestaxVCI380.clearConnectionsForMode(deck, previousMode);
     VestaxVCI380.setPadMode(deck, newMode);
     VestaxVCI380.makeConnectionsForMode(deck, newMode);
+    // no track loaded: keep the splash screen, except in sampler mode, which doesn't depend on the deck
+    if (newMode !== 5 && engine.getValue(`[Channel${deck}]`, "track_loaded") === 0) {
+        VestaxVCI380.setPadColorSplash(deck);
+    }
 };
 
 VestaxVCI380.setPadMode = function(deck, mode) {
