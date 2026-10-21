@@ -37,14 +37,29 @@ Audio Setup
 
 The audio interface is set up in :menuselection:`Preferences --> Sound Hardware --> Output`.
 
-========== ============== =============
-Output     Device         Channel
-========== ============== =============
-Main       VESTAX VCI-380 Channel 1 - 2
-Headphones VESTAX VCI-380 Channel 3 - 4
-========== ============== =============
+========== ============== ============= ===================
+Output     Device         Channel       Name in the device
+========== ============== ============= ===================
+Main       VESTAX VCI-380 Channel 1 - 2 Master Out L / R
+Headphones VESTAX VCI-380 Channel 3 - 4 PFL Out L / R
+========== ============== ============= ===================
 
 Inputs - RCA (line/phono) and MIC - can be handled by the integrated mixer, so they don't need to be set up in Mixxx.
+The audio interface also sends them to the computer, together with the controller's own master mix, so they can be used in :menuselection:`Preferences --> Sound Hardware --> Input`:
+
+============= =================== ================================
+Channel       Name in the device  Content
+============= =================== ================================
+Channel 1 - 2 Analogue In 1 L / R RCA input of the left channel
+Channel 3 - 4 Analogue In 2 L / R RCA input of the right channel
+Channel 5     Mic 1 In            microphone 1 (mono)
+Channel 6     Mic 2 In            microphone 2 (mono)
+Channel 7 - 8 Master Mix L / R    master mix of the controller
+============= =================== ================================
+
+Each RCA input has a :hwlabel:`LINE` / :hwlabel:`PHONO` switch, for a line level source or a turntable.
+
+For instance, the RCA inputs can be used for vinyl control, and the master mix for :guilabel:`Record/Broadcast`, to record the whole set including the external inputs and microphones mixed by the controller.
 
 Integrated mixer and external inputs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
