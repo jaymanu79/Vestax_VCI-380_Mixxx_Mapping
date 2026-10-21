@@ -1,0 +1,7 @@
+# Vestax VCI-380: set the audio clock when the controller is plugged in, so that
+# its audio inputs don't stutter on Linux (see vci380-set-clock.py).
+# Install:
+#   sudo install -m 755 vci380-set-clock.py /usr/local/bin/vci380-set-clock
+#   sudo install -m 644 99-vestax-vci380.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload
+ACTION=="add", SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb_device", ATTR{idVendor}=="1aa1", ATTR{idProduct}=="0240", RUN+="/usr/bin/systemd-run --no-block --unit=vci380-set-clock /usr/bin/python3 /usr/local/bin/vci380-set-clock --wait"

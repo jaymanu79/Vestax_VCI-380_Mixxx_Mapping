@@ -26,3 +26,7 @@ Please read [the user manual](vestax_vci_380.rst)
 # Hardware test
 
 `Vestax VCI-380 hwtest.midi.xml` and `Vestax-VCI-380-hwtest-scripts.js` are a separate mapping that checks every light and input of the controller and logs the MIDI codes it sends. It shows up in Mixxx as **Vestax VCI-380 (hardware test)**. See [HARDWARE-TEST.md](HARDWARE-TEST.md).
+
+# Linux audio inputs
+
+If the audio inputs of the controller sound choppy on Linux, see [linux-audio-fix](linux-audio-fix/README.md).
