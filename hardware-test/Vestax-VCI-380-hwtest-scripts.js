@@ -44,10 +44,10 @@ VCI380Test.LED = [
     {name: "SORT", note: 0x52},
     {name: "BACK", note: 0x53},
     {name: "FWD", note: 0x4F},
-    // found in Traktor mappings, unknown to the DJ mapping:
-    {name: "LOAD / headphone CUE (Jetz)", note: 0x0A},
-    {name: "FX ON (TPRO3)", note: 0x1C},
 ];
+// Not in the table: the LOAD (headphone cue) and FX ON LEDs are toggled by the
+// hardware itself and ignore MIDI (0x0A and 0x1C, tested), although some
+// Traktor mappings send them.
 
 // Pad colours: binary RGB, bright (0x_8) or dimmed (0x_0)
 VCI380Test.BRIGHT = [
