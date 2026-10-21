@@ -77,7 +77,7 @@ VCI380Test.DIMMED = [
 VCI380Test.BUTTON = {
     0x06: "FX SELECT push",
     0x09: "JOG SCROLL",
-    0x0B: "switch 0x0B (MIXER MODE?)",
+    0x0B: "MIXER / PC switch (7F = MIXER, 00 = PC)",
     0x0A: "LOAD (with SHIFT: headphone CUE state)",
     0x0C: "SHIFT",
     0x13: "SYNC",
