@@ -23,3 +23,6 @@ If it's correctly set up, all the controller lights will quickly flash on Mixxx 
 
 Please read [the user manual](vestax_vci_380.rst)
 
+# Hardware test
+
+The [hardware-test](hardware-test/) folder holds a separate mapping that checks every light and input of the controller and logs the MIDI codes it sends.
