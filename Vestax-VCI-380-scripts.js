@@ -112,13 +112,16 @@ VestaxVCI380.init = function(_id, _debugging) {
 // - CC 0x56, 0x57, 0x58 on 0xB7: knobs of the centre section.
 //   0x56 CF CURVE (crossfader curve) and 0x57 IF CURVE (input fader = channel
 //   fader curve): they don't change the MIDI values sent by the crossfader and
-//   the faders. 0x56 could drive [Mixer Profile],xFaderCurve.
+//   the faders; they act on the external inputs mixed by the hardware (channel
+//   switch on MIXER). 0x56 could drive [Mixer Profile],xFaderCurve.
 //   0x58 headphone CUE / MASTER mix: the hardware itself mixes the main output
 //   and the headphone (PFL / preview) output.
 // - CC 0x5B on 0xB7 / 0xB8: pad pressure (one value per deck); the pad notes
 //   also carry the velocity.
 // - MODE buttons are radio buttons handled by the hardware: changing mode sends
 //   the old mode with 00, then the new one with 7F.
+// - DEPTH (CC 0x0A) and FX ON (note 0x1C) also drive a hardware high-pass filter
+//   on the external input of the channel, besides the MIDI used by this mapping.
 // - LOAD (headphone cue) and FX ON are toggled by the hardware: their LEDs can't
 //   be driven by MIDI, but their state is sent (0x99 / 0x9A 0x0A, 0x97 / 0x98 0x1C).
 ////
