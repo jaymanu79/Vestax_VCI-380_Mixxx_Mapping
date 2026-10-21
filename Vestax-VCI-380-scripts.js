@@ -100,6 +100,22 @@ VestaxVCI380.init = function(_id, _debugging) {
 // The VCI-380 answers the MIDI Universal Identity Request by sending the current
 // state of all its controls (faders, knobs, pitch, crossfader, pad mode, headphone
 // cue and FX ON switches), through the usual MIDI messages and so the usual handlers.
+//
+// Identity reply: F0 7E 00 06 02  00 40 02 (maker)  40 02 (family = USB product
+// ID 0x0240)  00 00 (model)  02 01 01 00 (version)  F7
+//
+// Hardware facts found with the hardware test mapping, not used here:
+// - note 0x0B on 0x97 / 0x98: MIXER / PC switch of the channel (7F = MIXER,
+//   00 = PC). The sound card audio goes through in both positions, so the
+//   mapping doesn't need to change anything.
+// - CC 0x56, 0x57, 0x58 on 0xB7: knobs of the centre section, handled by the
+//   hardware.
+// - CC 0x5B on 0xB7 / 0xB8: pad pressure (one value per deck); the pad notes
+//   also carry the velocity.
+// - MODE buttons are radio buttons handled by the hardware: changing mode sends
+//   the old mode with 00, then the new one with 7F.
+// - LOAD (headphone cue) and FX ON are toggled by the hardware: their LEDs can't
+//   be driven by MIDI, but their state is sent (0x99 / 0x9A 0x0A, 0x97 / 0x98 0x1C).
 ////
 
 VestaxVCI380.IDENTITY_REQUEST = [0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7];
