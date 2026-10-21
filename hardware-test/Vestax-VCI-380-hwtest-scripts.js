@@ -14,7 +14,9 @@
 //           name and value are logged; every button lights the pads of
 //           its deck while held (white, or magenta with SHIFT) and a pad
 //           lights itself. Every note and CC number is bound, so codes
-//           unknown to the DJ mapping show up in the log as UNKNOWN
+//           unknown to the DJ mapping show up in the log as UNKNOWN.
+//           Entering the test sends a MIDI Identity Request, to which the
+//           controller answers with the position of every control
 //   SHIFT + left mode 1: test 5, output scan (e.g. to find how to switch the
 //           jog ring off): sends one chosen message at a time
 //             left FX SELECT encoder  number -1 / +1 (shift: -16 / +16)
@@ -75,14 +77,15 @@ VCI380Test.DIMMED = [
 VCI380Test.BUTTON = {
     0x06: "FX SELECT push",
     0x09: "JOG SCROLL",
-    0x0A: "LOAD",
+    0x0B: "switch 0x0B (MIXER MODE?)",
+    0x0A: "LOAD (with SHIFT: headphone CUE state)",
     0x0C: "SHIFT",
     0x13: "SYNC",
     0x16: "CUE",
     0x17: "PLAY",
     0x1A: "VINYL",
     0x1B: "RANGE",
-    0x1C: "FX ON",
+    0x1C: "FX ON (hardware toggle state)",
     0x1D: "PAD FX push",
     0x38: "MODE 1 (HOT CUE)",
     0x39: "MODE 2",
@@ -96,6 +99,11 @@ VCI380Test.BUTTON = {
     0x53: "BACK",
     0x54: "BROWSE push",
 };
+
+// MIDI Universal Identity Request: the VCI-380 answers with its identity
+// (F0 7E 00 06 02 00 40 02 40 02 00 00 02 01 01 00 F7) and then sends the
+// current state of every fader, knob and switch
+VCI380Test.IDENTITY_REQUEST = [0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7];
 
 VCI380Test.FIRST_PAD = 0x3C;      // pads 1-8 are notes 0x3C-0x43
 VCI380Test.FIRST_MODE = 0x38;     // MODE buttons 1-4 are notes 0x38-0x3B
@@ -126,8 +134,9 @@ VCI380Test.CC = {
     // seen in the Serato Scratch Live mapping, unknown to the Mixxx mapping:
     0x3C: {name: "PAD 1 pressure? (Serato: Sample Player Gain)", kind: "abs"},
     0x5B: {name: "0x5B (Serato: Effect Master Knob 1, Yoi: FX Knob 2 = pad pressure?)", kind: "abs"},
-    0x56: {name: "0x56 (Traktor TPRO3: mixer)", kind: "abs"},
-    0x58: {name: "0x58 (Traktor Jetz: Monitor CUE)", kind: "abs"},
+    0x56: {name: "mixer knob 0x56 (Traktor TPRO3: mixer)", kind: "abs"},
+    0x57: {name: "mixer knob 0x57", kind: "abs"},
+    0x58: {name: "mixer knob 0x58 (Traktor Jetz: Monitor CUE)", kind: "abs"},
 };
 VCI380Test.BLINK_MS = 300;
 VCI380Test.SELECTED = 0x78;       // colour of the selected pad (white)
@@ -232,6 +241,8 @@ VCI380Test.startTest = function(test) {
         VCI380Test.log("test 4, inputs: move any fader, knob, encoder, strip or jog (ring), press any button (pads)");
         VCI380Test.wheel = [-1, -1];
         VCI380Test.ring = [0, 0];
+        VCI380Test.log("asking the controller for the state of all its controls");
+        midi.sendSysexMsg(VCI380Test.IDENTITY_REQUEST, VCI380Test.IDENTITY_REQUEST.length);
         break;
     case 5:
         VCI380Test.log("test 5, output scan: FX SELECT = number, PAD FX = status, pads 1-7 = value, pad 8 = ring back");
@@ -401,6 +412,14 @@ VCI380Test.onCC = function(channel, control, value, _status, _group) {
     VCI380Test.ring[deck - 1] = ring;
     VCI380Test.log(`${side} ${cc.name} ${VCI380Test.hex(control)}: ${text}`);
     VCI380Test.setWheel(deck, ring);
+};
+
+// SysEx from the controller (the identity reply)
+VCI380Test.incomingData = function(data, length) {
+    if (length > 0 && data[0] === 0xF0) {
+        const bytes = Array.prototype.slice.call(data, 0, length);
+        VCI380Test.log(`SysEx: ${bytes.map(VCI380Test.hex).join(" ")}`);
+    }
 };
 
 // ------------------------------------------------------------ life cycle

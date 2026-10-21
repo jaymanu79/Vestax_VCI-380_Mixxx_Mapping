@@ -21,7 +21,7 @@ The MODE buttons of the **left** deck select the test. Test 1 starts at launch.
 | MODE 1 | All lights on: every LED (normal and shift instance), all pads white, both wheel rings |
 | MODE 2 | LEDs one by one: each pad selects an LED, which blinks alternately left / right. Left pads 1-8: SHIFT, SYNC, CUE, PLAY, VINYL, RANGE, PADFX, JOGSCROLL. Right pads 1-5: AREA, VIEW, SORT, BACK, FWD |
 | MODE 3 | Pad colours: left pads select a bright colour, right pads a dimmed one; all 16 pads take it |
-| MODE 4 | Inputs: every fader, knob, encoder, touch strip and jog wheel moves the ring of its deck; every button lights the pads of its deck while held (white, magenta with SHIFT); a pad lights itself. All 128 notes and CCs of channels 7-10 are bound, so codes unknown to the DJ mapping are logged as `UNKNOWN` |
+| MODE 4 | Inputs: every fader, knob, encoder, touch strip and jog wheel moves the ring of its deck; every button lights the pads of its deck while held (white, magenta with SHIFT); a pad lights itself. All 128 notes and CCs of channels 7-10 are bound, so codes unknown to the DJ mapping are logged as `UNKNOWN`. Entering the test sends a MIDI Identity Request: the controller answers and then reports the position of every control |
 | SHIFT + MODE 1 | Output scan: sends one chosen message at a time, to find hidden outputs (e.g. switching a ring off) |
 
 ### Output scan (SHIFT + left MODE 1)
@@ -45,3 +45,18 @@ on the hardware.
 Tested: the LOAD (headphone cue) and FX ON LEDs are toggled by the hardware
 and can't be driven by MIDI, although some Traktor mappings send notes
 `0x0A` and `0x1C` to them.
+
+## State dump: MIDI Identity Request
+
+The VCI-380 answers the standard MIDI Universal Identity Request
+`F0 7E 7F 06 01 F7` with
+
+    F0 7E 00 06 02  00 40 02  40 02  00 00  02 01 01 00  F7
+                    maker     family model  version
+
+(family `0x0240` is also the USB product ID) and then **sends the current
+state of every control**: pad mode buttons, note `0x0B` on both decks (a
+switch, maybe MIXER MODE), headphone CUE (`99/9A 0A`), FX ON (`97/98 1C`),
+pitch, depth, gain, EQ, volume, crossfader and the mixer knobs `0x56`,
+`0x57`, `0x58`. A mapping can send it in `init` to start in sync with the
+hardware.
