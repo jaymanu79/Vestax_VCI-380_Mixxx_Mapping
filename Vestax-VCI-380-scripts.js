@@ -113,7 +113,7 @@ VestaxVCI380.init = function(_id, _debugging) {
 //   0x56 CF CURVE (crossfader curve) and 0x57 IF CURVE (input fader = channel
 //   fader curve): they don't change the MIDI values sent by the crossfader and
 //   the faders; they act on the external inputs mixed by the hardware (channel
-//   switch on MIXER). 0x56 could drive [Mixer Profile],xFaderCurve.
+//   switch on MIXER). 0x56 drives the Mixxx crossfader curve (onCrossfaderCurve).
 //   0x58 headphone CUE / MASTER mix: the hardware itself mixes the main output
 //   and the headphone (PFL / preview) output.
 // - CC 0x5B on 0xB7 / 0xB8: pad pressure (one value per deck); the pad notes
@@ -302,6 +302,17 @@ VestaxVCI380.onEQ = function(channel, control, value, _status) {
 ////
 // SLIDERS
 ////
+// CF CURVE knob: crossfader curve of Mixxx, from smooth (left) to sharp cut (right).
+// The knob only acts on the external inputs in the hardware; Mixxx does the mixing
+// of its own decks, so the knob drives the curve set in Preferences > Mixer.
+// Same formula as the preferences slider (dlgprefmixer: linearToOneByX).
+VestaxVCI380.onCrossfaderCurve = function(channel, control, value, _status) {
+    const maxCurve = 999.6;
+    const curve = maxCurve / ((127 - value) / 127 * (maxCurve - 1) + 1);
+    engine.setValue("[Mixer Profile]", "xFaderCurve", curve);
+    engine.setValue("[Mixer Profile]", "xFaderCalibration", Math.pow(0.5, 1 / curve));
+};
+
 VestaxVCI380.onCrossfader = function(channel, control, value, _status) {
     if (VestaxVCI380.shiftStatus) { // SHIFT + crossfader sets Balance
         engine.setValue("[Master]", "balance", script.absoluteLin(value, -1, 1, 0, 127));

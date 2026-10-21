@@ -46,6 +46,24 @@ Headphones VESTAX VCI-380 Channel 3 - 4
 
 Inputs - RCA (line/phono) and MIC - can be handled by the integrated mixer, so they don't need to be set up in Mixxx.
 
+Integrated mixer and external inputs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each channel has a :hwlabel:`PC` / :hwlabel:`MIXER` switch. It mutes the external RCA input of the channel:
+
+- :hwlabel:`PC`: the external input is muted.
+- :hwlabel:`MIXER`: the external input (turntable, CD player...) is mixed by the controller itself.
+
+The sound coming from Mixxx goes through in both positions, so the switch doesn't change anything to the mapping.
+
+Some knobs only act on the external inputs, in the controller's integrated mixer:
+
+- :hwlabel:`IF CURVE` (input fader curve) sets the curve of the volume sliders.
+- :hwlabel:`CF CURVE` sets the curve of the crossfader. It also sets the Mixxx crossfader curve (see `Mixer functions`_).
+- :hwlabel:`DEPTH` and :hwlabel:`FX ON/OFF` drive a high-pass filter on the external input. They also drive the Mixxx quick effect of the deck, so with a turntable on the input and a track playing in Mixxx on the same channel, both are affected.
+
+The :hwlabel:`CUE/MASTER` knob mixes the main output and the headphone cue (PFL / preview) in the headphones. It's done by the controller, so it isn't mapped.
+
 Mapping
 -------
 
@@ -54,11 +72,13 @@ Mixer functions
 
 Main knobs and sliders work straightforwardly.
 
-Volume sliders, crossfader and :hwlabel:`DEPTH` have soft takeover enabled. The headphone cue buttons (:hwlabel:`CUE A` / :hwlabel:`CUE B`) toggle the headphone cue (PFL). The toggle is handled by the controller itself, and Mixxx follows its state.
+When the mapping starts, Mixxx takes the current position of every slider, knob and switch of the controller, so they're in sync from the start. The headphone cue buttons (:hwlabel:`CUE A` / :hwlabel:`CUE B`) toggle the headphone cue (PFL). The toggle is handled by the controller itself, and Mixxx follows its state.
 
 Hold :hwlabel:`SHIFT` while turning EQ knobs (:hwlabel:`HIGH`/:hwlabel:`MID`/:hwlabel:`LOW`) for EQ kill mode: turning the EQ to the left side cuts the frequency range, turning to the right side re-enables it (all or nothing).
 
 Hold :hwlabel:`SHIFT` while moving the crossfader to control output balance.
+
+:hwlabel:`CF CURVE` sets the crossfader curve of Mixxx, from smooth transition (left) to sharp cut (right). It replaces the crossfader curve slider of :menuselection:`Preferences --> Mixer`.
 
 Wheels
 ~~~~~~
