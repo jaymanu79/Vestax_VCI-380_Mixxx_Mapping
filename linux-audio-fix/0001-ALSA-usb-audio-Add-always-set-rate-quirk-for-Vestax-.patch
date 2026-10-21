@@ -18,6 +18,12 @@ switched off. Sending a single SET_CUR of 48000 Hz to the clock source
 
 Apply QUIRK_FLAG_ALWAYS_SET_RATE to the device.
 ---
+Tested by sending the same SET_CUR (48000 Hz, clock source 41) from user
+space with libusb on a kernel without QUIRK_FLAG_ALWAYS_SET_RATE: the
+recorded input went from about 140 discontinuities per second to none,
+until the controller is switched off. The quirk itself could not be tested
+on this kernel.
+
  sound/usb/quirks.c | 2 ++
  1 file changed, 2 insertions(+)
 
