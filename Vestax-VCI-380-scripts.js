@@ -106,6 +106,8 @@ VestaxVCI380.IDENTITY_REQUEST = [0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7];
 
 // controls with soft takeover set from the script
 VestaxVCI380.softTakeoverControls = [
+    ["[Channel1]", "volume"],
+    ["[Channel2]", "volume"],
     ["[Master]", "crossfader"],
     ["[QuickEffectRack1_[Channel1]]", "super1"],
     ["[QuickEffectRack1_[Channel2]]", "super1"],
@@ -297,6 +299,12 @@ VestaxVCI380.onEQ = function(channel, control, value, _status) {
 ////
 // SLIDERS
 ////
+// Channel volume faders: in the script (not in the XML) so that their soft takeover
+// can be switched off while the controller sends its initial state
+VestaxVCI380.onVolume = function(channel, control, value, _status) {
+    engine.setParameter(`[Channel${VestaxVCI380.getDeck(channel)}]`, "volume", value / 127);
+};
+
 VestaxVCI380.onCrossfader = function(channel, control, value, _status) {
     if (VestaxVCI380.shiftStatus) { // SHIFT + crossfader sets Balance
         engine.setValue("[Master]", "balance", script.absoluteLin(value, -1, 1, 0, 127));
