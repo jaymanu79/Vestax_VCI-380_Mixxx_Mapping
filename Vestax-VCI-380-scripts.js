@@ -60,7 +60,7 @@ VestaxVCI380.init = function(_id, _debugging) {
         }
     }
 
-    // soft takeover: enabled once the controller has sent its initial state (see syncWithController)
+    // no soft takeover: Mixxx gets the position of every fader and knob at startup (see syncWithController)
 
     // events connection
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "playposition", VestaxVCI380.updatePlayposition));
@@ -104,29 +104,8 @@ VestaxVCI380.init = function(_id, _debugging) {
 
 VestaxVCI380.IDENTITY_REQUEST = [0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7];
 
-// controls with soft takeover set from the script
-VestaxVCI380.softTakeoverControls = [
-    ["[Channel1]", "volume"],
-    ["[Channel2]", "volume"],
-    ["[Master]", "crossfader"],
-    ["[QuickEffectRack1_[Channel1]]", "super1"],
-    ["[QuickEffectRack1_[Channel2]]", "super1"],
-];
-
-VestaxVCI380.setSoftTakeover = function(enable) {
-    VestaxVCI380.softTakeoverControls.forEach(function(control) {
-        engine.softTakeover(control[0], control[1], enable);
-    });
-};
-
 VestaxVCI380.syncWithController = function() {
-    // soft takeover would ignore the initial values when they are far from Mixxx's ones:
-    // keep it off until the controller has sent its state
-    VestaxVCI380.setSoftTakeover(false);
     midi.sendSysexMsg(VestaxVCI380.IDENTITY_REQUEST, VestaxVCI380.IDENTITY_REQUEST.length);
-    engine.beginTimer(1000, function() {
-        VestaxVCI380.setSoftTakeover(true);
-    }, true);
 };
 
 
@@ -299,12 +278,6 @@ VestaxVCI380.onEQ = function(channel, control, value, _status) {
 ////
 // SLIDERS
 ////
-// Channel volume faders: in the script (not in the XML) so that their soft takeover
-// can be switched off while the controller sends its initial state
-VestaxVCI380.onVolume = function(channel, control, value, _status) {
-    engine.setParameter(`[Channel${VestaxVCI380.getDeck(channel)}]`, "volume", value / 127);
-};
-
 VestaxVCI380.onCrossfader = function(channel, control, value, _status) {
     if (VestaxVCI380.shiftStatus) { // SHIFT + crossfader sets Balance
         engine.setValue("[Master]", "balance", script.absoluteLin(value, -1, 1, 0, 127));
