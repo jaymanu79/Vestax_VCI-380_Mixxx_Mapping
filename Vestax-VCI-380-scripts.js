@@ -110,7 +110,8 @@ VestaxVCI380.init = function(_id, _debugging) {
 //   card audio goes through in both positions, so the mapping doesn't need to
 //   change anything.
 // - CC 0x56, 0x57, 0x58 on 0xB7: knobs of the centre section, handled by the
-//   hardware.
+//   hardware. 0x58 is the headphone CUE / MASTER mix: the hardware itself mixes
+//   the main output and the headphone (PFL / preview) output.
 // - CC 0x5B on 0xB7 / 0xB8: pad pressure (one value per deck); the pad notes
 //   also carry the velocity.
 // - MODE buttons are radio buttons handled by the hardware: changing mode sends
