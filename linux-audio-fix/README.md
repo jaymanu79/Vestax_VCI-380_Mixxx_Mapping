@@ -45,21 +45,36 @@ in `0001-ALSA-usb-audio-Add-always-set-rate-quirk-for-Vestax-.patch`.
 
 `vci380-set-clock.py` sends the request itself, then re-enumerates the device
 so that the sound driver binds again. The setting lasts until the controller
-is switched off. The udev rule runs it each time the controller is plugged in
-or switched on.
+is switched off. Run it when you need the inputs, after switching the
+controller on and before starting Mixxx (or rescan the devices in the sound
+preferences afterwards):
 
 ```sh
 sudo apt install python3-usb
+sudo python3 vci380-set-clock.py
+```
+
+The sound card disappears for a second while the script runs.
+
+#### Optional: run it automatically
+
+The udev rule runs the script each time the controller is plugged in or
+switched on. It is not needed if you run the script by hand.
+
+```sh
 sudo install -m 755 vci380-set-clock.py /usr/local/bin/vci380-set-clock
 sudo install -m 644 99-vestax-vci380.rules /etc/udev/rules.d/
 sudo udevadm control --reload
 ```
 
-The sound card disappears for a second about 5 seconds after the controller
-is switched on: switch the controller on, wait a few seconds, then start
-Mixxx (or rescan the devices in the sound preferences).
+The sound card then disappears for a second about 5 seconds after the
+controller is switched on: wait a few seconds before starting Mixxx. Its log:
+`journalctl -b -u vci380-set-clock`. To remove it:
 
-Its log: `journalctl -b -u vci380-set-clock`.
+```sh
+sudo rm /etc/udev/rules.d/99-vestax-vci380.rules /usr/local/bin/vci380-set-clock
+sudo udevadm control --reload
+```
 
 ## Diagnostic tools
 

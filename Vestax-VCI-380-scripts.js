@@ -7,6 +7,9 @@ VestaxVCI380.beatPos = [0, 0];
 // Color table. Colors are binary RGB, each in 2 variants : normal or dimmed
 VestaxVCI380.padColor = {"OFF": 0x00, "BLUE": 0x18, "GREEN": 0x28, "CYAN": 0x38, "RED": 0x48, "MAGENTA": 0x58, "YELLOW": 0x68, "WHITE": 0x78, "dimBLUE": 0x10, "dimGREEN": 0x20, "dimCYAN": 0x30, "dimRED": 0x40, "dimMAGENTA": 0x50, "dimYELLOW": 0x60, "dimWHITE": 0x70};
 
+// NI Stems format: up to 4 stems; one pad row per stem
+VestaxVCI380.MAX_STEMS = 4;
+
 // Color mapper
 VestaxVCI380.ColorMapper = new ColorMapper({
     0xFF0000: 0x48, // red
@@ -60,6 +63,8 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "playposition", VestaxVCI380.updatePlayposition));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "play", VestaxVCI380.updatePlayStatus));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "play", VestaxVCI380.updatePlayStatus));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "end_of_track", VestaxVCI380.updatePlayStatus));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "end_of_track", VestaxVCI380.updatePlayStatus));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "track_loaded", VestaxVCI380.onTrackLoaded));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "track_loaded", VestaxVCI380.onTrackLoaded));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "quantize", VestaxVCI380.initLEDs));
@@ -68,6 +73,8 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "keylock", VestaxVCI380.initLEDs));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "rate", VestaxVCI380.onRateChange));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "rate", VestaxVCI380.onRateChange));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "slip_enabled", VestaxVCI380.initLEDs));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "slip_enabled", VestaxVCI380.initLEDs));
 
     // turning off all LEDs
     VestaxVCI380.setPadColorAll(VestaxVCI380.padColor.OFF);
@@ -80,12 +87,17 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.setMode(1, 1);
     VestaxVCI380.setMode(2, 1);
 
-    // displaying splash screen
-    VestaxVCI380.setPadColorSplash(1);
-    VestaxVCI380.setPadColorSplash(2);
-
     // align Mixxx with the current position of the faders, knobs and switches
     VestaxVCI380.syncWithController();
+
+    // splash screen, once the controller has sent its state (pad mode included)
+    engine.beginTimer(500, function() {
+        for (let deck = 1; deck <= 2; deck++) {
+            if (engine.getValue(`[Channel${deck}]`, "track_loaded") === 0) {
+                VestaxVCI380.setPadColorSplash(deck);
+            }
+        }
+    }, true);
 };
 
 ////
@@ -158,22 +170,16 @@ VestaxVCI380.getDeckFromGroup = function(group) {
 // with soft start and brake
 ////
 VestaxVCI380.onPlay = function(channel, control, value, status, group) {
-    const deck=VestaxVCI380.getDeck(channel);
-    if (value === 0x00) {
-        const playStatus = engine.getValue(group, "play");
-
+    if (value === 0x7F) {
+        const deck = VestaxVCI380.getDeck(channel);
         if (VestaxVCI380.shiftStatus) {
-            if (playStatus === 1) {
+            if (engine.getValue(group, "play")) {
                 engine.brake(deck, true, 10);
             } else {
                 engine.softStart(deck, true, 10);
             }
         } else {
-            if (playStatus === 1) {
-                engine.setValue(group, "play", 0);
-            } else {
-                engine.setValue(group, "play", 1);
-            }
+            script.toggleControl(group, "play");
         }
     }
 };
@@ -314,68 +320,14 @@ VestaxVCI380.onCrossfader = function(channel, control, value, _status) {
     }
 };
 
-// Pitch : The VCI 380 has high resolution (14 bit) pitch controls
-// It sends this value in 2 sequential MIDI messages : MSB then LSB. So we need to implement a memory.
-VestaxVCI380.rateMSB=[0x00, 0x00]; // MSB memory
-VestaxVCI380.onRate = function(channel, control, value, _status) {
-    if (control===0x0D) { // we're receiving the MSB
-        VestaxVCI380.rateMSB[VestaxVCI380.getDeck(channel)-1]=value; // remember the MSB
-    } else if (control===0x2D) { // we're receiving the LSB
-        // calculate the rate value by combining together the received LSB and the memorized MSB
-        engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}]`, "rate", script.absoluteLin(VestaxVCI380.rateMSB[VestaxVCI380.getDeck(channel)-1]*128+value, -1, 1, 0, 16384));
-    }
-};
-
 ////
 // BUTTONS
 ////
 
-// RANGE button used as key lock
-VestaxVCI380.onRange = function(channel, control, value, _status) {
-    if (value===0x7F) {
-        const deck=VestaxVCI380.getDeck(channel);
-        if (VestaxVCI380.shiftStatus) {
-            const keyLockStatus=engine.getValue(`[Channel${deck}]`, "keylock")===1;
-            VestaxVCI380.setLED(deck+2, VestaxVCI380.LED.RANGE, !keyLockStatus); // LEDs possess a distinct status with shift. settable by adding 2 to midi channel #
-            engine.setValue(`[Channel${deck}]`, "keylock", !keyLockStatus);
-        } else {
-            const quantizeStatus=engine.getValue(`[Channel${deck}]`, "quantize")===1;
-            VestaxVCI380.setLED(deck, VestaxVCI380.LED.RANGE, !quantizeStatus);
-            engine.setValue(`[Channel${deck}]`, "quantize", !quantizeStatus);
-        }
-    }
-};
-
-
-
 // VINYL button used as slip mode
 VestaxVCI380.onVinyl = function(channel, control, value, _status) {
     if  (value===0x7F) {
-        const deck=VestaxVCI380.getDeck(channel);
-        const group = `[Channel${deck}]`;
-        const newState = !engine.getValue(group, "slip_enabled");
-        VestaxVCI380.setLED(deck, VestaxVCI380.LED.VINYL, newState);
-        engine.setValue(group, "slip_enabled", newState);
-    }
-};
-
-// BACK and FWD buttons
-VestaxVCI380.onBack = function(channel, control, value, _status) {
-    if (value===0x7F) {
-        engine.setValue("[Library]", "MoveHorizontal", -1);
-    }
-};
-VestaxVCI380.onFwd = function(channel, control, value, _status) {
-    if (value===0x7F) {
-        engine.setValue("[Library]", "MoveHorizontal", 1);
-    }
-};
-
-
-// SORT button
-VestaxVCI380.onSort = function(channel, control, value, _status) {
-    if  (value===0x7F) {
-        engine.setValue("[Library]", "sort_focused_column", 1);
+        script.toggleControl(`[Channel${VestaxVCI380.getDeck(channel)}]`, "slip_enabled");
     }
 };
 
@@ -395,37 +347,19 @@ VestaxVCI380.onHeadCue = function(channel, control, value, _status) {
 
 ////
 // STRIPS
-// They automatically send a different code according to the current Mode
-// so each mode has its own mapping and function
+// In mode 4 (Stems), if a stem is selected, the strip will control its volume
+// In other modes, both strips control the needle drop on the preview deck.
+//                 or with SHIFT, they do needle drop on the corresponding deck
 ////
 
-VestaxVCI380.onStripMode1 = function(channel, control, value, _status) {
-    const deck=VestaxVCI380.getDeck(channel);
-    if (VestaxVCI380.shiftStatus) { // SHIFT + strip = needle drop on main decks
-        engine.setValue(`[Channel${deck}]`, "playposition", script.absoluteLin(value, 0, 0.99)); // 0.99 instead of 1, to avoid unintentional stop while stripping to the end
-    } else { // without shift : needle drop in the preview deck
-        engine.setValue("[PreviewDeck1]", "playposition", script.absoluteLin(value, 0, 0.99));
-    }
-};
-
-// In modes 2,3 and 5, the strips keep the same functionality as in mode 1
-VestaxVCI380.onStripMode2 = function(channel, control, value, status) {
-    VestaxVCI380.onStripMode1(channel, control, value, status);
-};
-VestaxVCI380.onStripMode3 = function(channel, control, value, status) {
-    VestaxVCI380.onStripMode1(channel, control, value, status);
-};
-VestaxVCI380.onStripMode5 = function(channel, control, value, status) {
-    VestaxVCI380.onStripMode1(channel, control, value, status);
-};
-
-// In mode 4 (Stems), if a stem is selected, the strip will control its volume
-VestaxVCI380.onStripMode4 = function(channel, control, value, status) {
+VestaxVCI380.onStrip = function(channel, control, value, _status) {
     const deck=VestaxVCI380.getDeck(channel);
     if (VestaxVCI380.padMode[deck-1]===4 && VestaxVCI380.pushedButton[deck-1]>=1 && VestaxVCI380.pushedButton[deck-1]<=4) {
         engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}_Stem${VestaxVCI380.pushedButton[deck-1]}]`, "volume", script.absoluteLin(value, 0, 1));
-    } else {
-        VestaxVCI380.onStripMode1(channel, control, value, status);
+    } else if (VestaxVCI380.shiftStatus) { // SHIFT + strip = needle drop on main decks
+        engine.setValue(`[Channel${deck}]`, "playposition", script.absoluteLin(value, 0, 0.99)); // 0.99 instead of 1, to avoid unintentional stop while stripping to the end
+    } else { // without shift : needle drop in the preview deck
+        engine.setValue("[PreviewDeck1]", "playposition", script.absoluteLin(value, 0, 0.99));
     }
 };
 
@@ -610,6 +544,11 @@ VestaxVCI380.trackEndAlert=[false, false];
 VestaxVCI380.trackEndAlertTimer=[0, 0];
 VestaxVCI380.trackEndAlertLEDStatus=[false, false];
 
+VestaxVCI380.updatePlayStatus = function(_value, group, _control) {
+    const deck=VestaxVCI380.getDeckFromGroup(group);
+    VestaxVCI380.enableTrackEndAlert(deck, engine.getValue(group, "end_of_track") === 1 && engine.getValue(group, "play") === 1);
+};
+
 VestaxVCI380.enableTrackEndAlert = function(deck, status) {
     if (status) { // enabling
         if (!VestaxVCI380.trackEndAlert[deck-1]) { // dont enable if already enabled
@@ -650,13 +589,6 @@ VestaxVCI380.trackEndAlertNoFlash = function(deck) {
     }
 };
 
-VestaxVCI380.updatePlayStatus = function(value, group, _control) {
-    const deck=VestaxVCI380.getDeckFromGroup(group);
-    if (value===0) {
-        VestaxVCI380.enableTrackEndAlert(deck, false);
-    }
-};
-
 // Managing the 5 different modes for the colorpads
 // Modes are :
 // 1 - HOT CUE
@@ -688,10 +620,6 @@ VestaxVCI380.setMode = function(deck, newMode) {
     VestaxVCI380.clearConnectionsForMode(deck, previousMode);
     VestaxVCI380.setPadMode(deck, newMode);
     VestaxVCI380.makeConnectionsForMode(deck, newMode);
-    // no track loaded: keep the splash screen, except in sampler mode, which doesn't depend on the deck
-    if (newMode !== 5 && engine.getValue(`[Channel${deck}]`, "track_loaded") === 0) {
-        VestaxVCI380.setPadColorSplash(deck);
-    }
 };
 
 VestaxVCI380.setPadMode = function(deck, mode) {
@@ -718,7 +646,6 @@ VestaxVCI380.setPadMode = function(deck, mode) {
 VestaxVCI380.makeConnectionsForMode = function(deck, mode) {
     let connector;
     let numSamplers;
-    let numStems;
     switch (mode) {
     case 1 : // hot cues
         for (let hotcue = 1; hotcue <= 8; hotcue++) {
@@ -742,8 +669,7 @@ VestaxVCI380.makeConnectionsForMode = function(deck, mode) {
         if (connector !== undefined) { // To keep compatibility with Mixxx versions without stem
             connector.trigger();
             VestaxVCI380.modeConnections[deck-1].push(connector);
-            numStems=engine.getValue(`[Channel${deck}]`, "stem_count");
-            for (let stem = 1; stem <= numStems; stem++) {
+            for (let stem = 1; stem <= VestaxVCI380.MAX_STEMS; stem++) {
                 VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection(`[Channel${deck}_Stem${stem}]`, "color", VestaxVCI380.onStemChange));
                 VestaxVCI380.modeConnections[deck-1].push(engine.makeConnection(`[Channel${deck}_Stem${stem}]`, "mute", VestaxVCI380.onStemChange));
             }
@@ -785,7 +711,7 @@ VestaxVCI380.refreshPadsStem = function(deck) {
         midi.sendShortMsg(0x96+deck, 0x3B+stem, stemColor);
         midi.sendShortMsg(0x96+deck, 0x3B+stem+4, engine.getValue(`[Channel${deck}_Stem${stem}]`, "mute")===0 ? stemColor : stemColorDim);
     }
-    for (let emptyStem=numStems+1; emptyStem <= 4; emptyStem++) {
+    for (let emptyStem=numStems+1; emptyStem <= VestaxVCI380.MAX_STEMS; emptyStem++) {
         midi.sendShortMsg(0x96+deck, 0x3B+emptyStem, VestaxVCI380.padColor.dimWHITE);
         midi.sendShortMsg(0x96+deck, 0x3B+emptyStem+4, VestaxVCI380.padColor.dimWHITE);
     }
@@ -857,7 +783,6 @@ VestaxVCI380.onRateChange = function(value, group, _control) {
 VestaxVCI380.onTrackLoaded = function(value, group, _control) {
     const deck=VestaxVCI380.getDeckFromGroup(group);
     if (engine.getValue(group, "track_loaded")===0) { // track ejected -> reset display
-        VestaxVCI380.setPadColorSplash(deck);
         VestaxVCI380.setWheelLED(deck, 0);
     } else {
 
@@ -951,7 +876,7 @@ VestaxVCI380.getDeck = function(channel) {
 // Most LEDs have 2 instances, one for left-deck and the other for the right. The MIDI channel selects the desired deck.
 // Though browse area leds (area, view, sort, back, fwd, jogscroll) are unique and assigned to deck 1 only
 // FX ON/OFF LED is not addressable, it maintains its own status
-VestaxVCI380.LED = {"SHIFT": 12, "SYNC": 19, "CUE": 22, "PLAY": 23, "VINYL": 26, "RANGE": 27, "AREA": 80, "VIEW": 81, "SORT": 82, "BACK": 83, "FWD": 79, "JOGSCROLL": "09", "PADFX": 29};
+VestaxVCI380.LED = {"SHIFT": 12, "SYNC": 19, "CUE": 22, "PLAY": 23, "VINYL": 26, "RANGE": 27, "AREA": 80, "VIEW": 81, "SORT": 82, "BACK": 83, "FWD": 79, "JOGSCROLL": 9, "PADFX": 29};
 
 // set a LED to ON or OFF, for given deck# (1 for left, 2 for right)
 // led IDs to be taken from LED table
@@ -997,7 +922,7 @@ VestaxVCI380.setPadColor = function(deck, pad, color) {
 // Sets the color of all pads of a deck (1-2)
 // color from padCOLOR table
 VestaxVCI380.setPadColorDeck = function(deck, color) {
-    for (let padID=0x3B; padID<=0x43; padID++) {
+    for (let padID=0x3C; padID<=0x43; padID++) {
         midi.sendShortMsg(0x96+deck, padID, color);
     }
 };
@@ -1005,7 +930,7 @@ VestaxVCI380.setPadColorDeck = function(deck, color) {
 // Sets the color of all pads of the device
 // color from padCOLOR table
 VestaxVCI380.setPadColorAll = function(color) {
-    for (let padID=0x3B; padID<=0x43; padID++) {
+    for (let padID=0x3C; padID<=0x43; padID++) {
         midi.sendShortMsg(0x97, padID, color);
         midi.sendShortMsg(0x98, padID, color);
     }
@@ -1074,7 +999,7 @@ VestaxVCI380.setPadColorBeatGridMode = function(deck) {
 
 // Light up the pads of a deck for Sampler mode
 VestaxVCI380.setPadColorSamplerMode = function(deck) {
-    VestaxVCI380.setPadColor(deck, 1, VestaxVCI380.padColor.MAGENTA);
+    VestaxVCI380.setPadColorDeck(deck, VestaxVCI380.padColor.OFF);
 };
 
 VestaxVCI380.setPadColorSplash = function(deck) {
@@ -1093,14 +1018,7 @@ VestaxVCI380.updatePlayposition = function(value, group, _control) {
     const duration=engine.getValue(group, "duration");
     const tickPerSecond=71.11111;
     const elapsedticks=duration*value*tickPerSecond;
-    VestaxVCI380.setWheelLED(deck, elapsedticks%128);
-
-    // update track end alert indicator
-    if (value*duration>(duration-30)) { // less than 30 seconds remaining
-        VestaxVCI380.enableTrackEndAlert(deck, true);
-    } else {
-        VestaxVCI380.enableTrackEndAlert(deck, false);
-    }
+    VestaxVCI380.setWheelLED(deck, Math.floor(elapsedticks%128));
 };
 
 
