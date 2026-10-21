@@ -6,7 +6,8 @@ and to look for MIDI codes that the DJ mapping doesn't use yet.
 ## Install
 
 Copy `Vestax VCI-380 hwtest.midi.xml` and `Vestax-VCI-380-hwtest-scripts.js`
-to the Mixxx controllers folder (see the main README), then select
+to the Mixxx controllers folder, next to the DJ mapping (see the
+[README](README.md)), then select
 **Vestax VCI-380 (hardware test)** for the controller in the preferences.
 
 Start Mixxx with `mixxx --controller-debug` to see the test messages in the
