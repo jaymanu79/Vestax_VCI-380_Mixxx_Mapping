@@ -105,9 +105,10 @@ VestaxVCI380.init = function(_id, _debugging) {
 // ID 0x0240)  00 00 (model)  02 01 01 00 (version)  F7
 //
 // Hardware facts found with the hardware test mapping, not used here:
-// - note 0x0B on 0x97 / 0x98: MIXER / PC switch of the channel (7F = MIXER,
-//   00 = PC). The sound card audio goes through in both positions, so the
-//   mapping doesn't need to change anything.
+// - note 0x0B on 0x97 / 0x98: MIXER / PC switch of the channel, which mutes its
+//   external input (7F = MIXER, input heard; 00 = PC, input muted). The sound
+//   card audio goes through in both positions, so the mapping doesn't need to
+//   change anything.
 // - CC 0x56, 0x57, 0x58 on 0xB7: knobs of the centre section, handled by the
 //   hardware.
 // - CC 0x5B on 0xB7 / 0xB8: pad pressure (one value per deck); the pad notes
