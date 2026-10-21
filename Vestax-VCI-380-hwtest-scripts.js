@@ -336,8 +336,11 @@ VCI380Test.onMode = function(channel, control, value, _status, _group) {
         VCI380Test.onButton(channel, control, value);
         return;
     }
-    if (value !== 0) {
-        VCI380Test.startTest(control - VCI380Test.FIRST_MODE + 1);
+    const test = control - VCI380Test.FIRST_MODE + 1;
+    // the state dump of test 4 repeats the active MODE button: ignore it, or the
+    // test would restart and ask for the state again, endlessly
+    if (value !== 0 && test !== VCI380Test.test) {
+        VCI380Test.startTest(test);
     }
 };
 
