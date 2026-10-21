@@ -104,7 +104,7 @@ VestaxVCI380.init = function(_id, _debugging) {
 // Identity reply: F0 7E 00 06 02  00 40 02 (maker)  40 02 (family = USB product
 // ID 0x0240)  00 00 (model)  02 01 01 00 (version)  F7
 //
-// Hardware facts found with the hardware test mapping, not used here:
+// Hardware facts found by testing the controller, not used here:
 // - note 0x0B on 0x97 / 0x98: MIXER / PC switch of the channel, which mutes its
 //   external input (7F = MIXER, input heard; 00 = PC, input muted). The sound
 //   card audio goes through in both positions, so the mapping doesn't need to
