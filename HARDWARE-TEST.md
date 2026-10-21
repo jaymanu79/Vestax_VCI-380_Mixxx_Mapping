@@ -56,8 +56,8 @@ The VCI-380 answers the standard MIDI Universal Identity Request
                     maker     family model  version
 
 (family `0x0240` is also the USB product ID) and then **sends the current
-state of every control**: pad mode buttons, note `0x0B` on both decks (a
-switch, maybe MIXER MODE), headphone CUE (`99/9A 0A`), FX ON (`97/98 1C`),
+state of every control**: pad mode buttons, note `0x0B` on both decks (the
+MIXER / PC switch of the channel: `7F` = MIXER, `00` = PC), headphone CUE (`99/9A 0A`), FX ON (`97/98 1C`),
 pitch, depth, gain, EQ, volume, crossfader and the mixer knobs `0x56`,
 `0x57`, `0x58`. A mapping can send it in `init` to start in sync with the
 hardware.
