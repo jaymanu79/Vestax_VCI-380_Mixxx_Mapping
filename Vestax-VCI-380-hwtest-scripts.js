@@ -136,7 +136,7 @@ VCI380Test.CC = {
     0x5B: {name: "0x5B (Serato: Effect Master Knob 1, Yoi: FX Knob 2 = pad pressure?)", kind: "abs"},
     0x56: {name: "mixer knob 0x56 (Traktor TPRO3: mixer)", kind: "abs"},
     0x57: {name: "mixer knob 0x57", kind: "abs"},
-    0x58: {name: "mixer knob 0x58 (Traktor Jetz: Monitor CUE)", kind: "abs"},
+    0x58: {name: "headphone CUE / MASTER mix knob", kind: "abs"},
 };
 VCI380Test.BLINK_MS = 300;
 VCI380Test.SELECTED = 0x78;       // colour of the selected pad (white)

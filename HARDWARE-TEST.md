@@ -59,6 +59,6 @@ The VCI-380 answers the standard MIDI Universal Identity Request
 state of every control**: pad mode buttons, note `0x0B` on both decks (the
 MIXER / PC switch of the channel, which mutes its external input: `7F` = MIXER,
 input heard, `00` = PC, input muted; the sound card audio goes through in both), headphone CUE (`99/9A 0A`), FX ON (`97/98 1C`),
-pitch, depth, gain, EQ, volume, crossfader and the mixer knobs `0x56`,
-`0x57`, `0x58`. A mapping can send it in `init` to start in sync with the
+pitch, depth, gain, EQ, volume, crossfader and the centre knobs `0x56`,
+`0x57` and `0x58` (headphone CUE / MASTER mix, done by the hardware). A mapping can send it in `init` to start in sync with the
 hardware.
