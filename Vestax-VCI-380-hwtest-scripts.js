@@ -134,8 +134,8 @@ VCI380Test.CC = {
     // seen in the Serato Scratch Live mapping, unknown to the Mixxx mapping:
     0x3C: {name: "PAD 1 pressure? (Serato: Sample Player Gain)", kind: "abs"},
     0x5B: {name: "0x5B (Serato: Effect Master Knob 1, Yoi: FX Knob 2 = pad pressure?)", kind: "abs"},
-    0x56: {name: "mixer knob 0x56 (Traktor TPRO3: mixer)", kind: "abs"},
-    0x57: {name: "mixer knob 0x57", kind: "abs"},
+    0x56: {name: "CF CURVE knob (crossfader curve)", kind: "abs"},
+    0x57: {name: "IF CURVE knob (input fader curve)", kind: "abs"},
     0x58: {name: "headphone CUE / MASTER mix knob", kind: "abs"},
 };
 VCI380Test.BLINK_MS = 300;
