@@ -61,6 +61,12 @@ Each RCA input has a :hwlabel:`LINE` / :hwlabel:`PHONO` switch, for a line level
 
 For instance, the RCA inputs can be used for vinyl control, and the master mix for :guilabel:`Record/Broadcast`, to record the whole set including the external inputs and microphones mixed by the controller.
 
+.. note::
+
+   On Linux, the inputs may sound choppy: the controller only configures its clock when the computer explicitly sets the sample rate, which Linux skips because the rate already reads 48 kHz.
+   The outputs are not affected.
+   A script and a udev rule that fix it are available in the `mapping repository <https://github.com/jaymanu79/Vestax_VCI-380_Mixxx_Mapping/tree/main/linux-audio-fix>`__.
+
 Integrated mixer and external inputs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
