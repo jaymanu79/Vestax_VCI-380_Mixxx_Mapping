@@ -62,5 +62,7 @@ input heard, `00` = PC, input muted; the sound card audio goes through in both),
 pitch, depth, gain, EQ, volume, crossfader and the centre knobs: `0x56` CF CURVE
 (crossfader curve), `0x57` IF CURVE (input fader curve) and `0x58` headphone
 CUE / MASTER mix (done by the hardware). The curve knobs don't change the
-MIDI values sent by the crossfader and the faders. A mapping can send it in `init` to start in sync with the
+MIDI values sent by the crossfader and the faders: like DEPTH and FX ON (a
+hardware high-pass filter), they act on the external inputs mixed by the
+hardware (channel switch on MIXER). A mapping can send it in `init` to start in sync with the
 hardware.
