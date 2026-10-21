@@ -47,7 +47,7 @@ VCI380Test.LED = [
     {name: "BACK", note: 0x53},
     {name: "FWD", note: 0x4F},
 ];
-// Not in the table: the LOAD (headphone cue) and FX ON LEDs are toggled by the
+// Not in the table: the CUE A / CUE B (headphone cue) and FX ON LEDs are toggled by the
 // hardware itself and ignore MIDI (0x0A and 0x1C, tested), although some
 // Traktor mappings send them.
 
@@ -78,26 +78,26 @@ VCI380Test.BUTTON = {
     0x06: "FX SELECT push",
     0x09: "JOG SCROLL",
     0x0B: "MIXER / PC switch = input mute (7F = MIXER, input heard; 00 = PC, input muted)",
-    0x0A: "LOAD (with SHIFT: headphone CUE state)",
+    0x0A: "CUE A/B (headphone cue; LOAD with JOG SCROLL held; state sent on the shift channel)",
     0x0C: "SHIFT",
     0x13: "SYNC",
     0x16: "CUE",
     0x17: "PLAY",
     0x1A: "VINYL",
     0x1B: "RANGE",
-    0x1C: "FX ON (hardware toggle state)",
+    0x1C: "FX ON/OFF switch (hardware toggle, state sent)",
     0x1D: "PAD FX push",
-    0x38: "MODE 1 (HOT CUE)",
-    0x39: "MODE 2",
-    0x3A: "MODE 3",
-    0x3B: "MODE 4",
+    0x38: "HOT CUE (MODE 1, with SHIFT: SAMPLER)",
+    0x39: "SLICER (MODE 2)",
+    0x3A: "AUTO LOOP (MODE 3)",
+    0x3B: "ROLL (MODE 4)",
     0x44: "JOG WHEEL touch",
     0x4F: "FWD",
     0x50: "AREA",
     0x51: "VIEW",
     0x52: "SORT",
     0x53: "BACK",
-    0x54: "BROWSE push",
+    0x54: "SCROLL push",
 };
 
 // MIDI Universal Identity Request: the VCI-380 answers with its identity
@@ -113,30 +113,31 @@ VCI380Test.WHEEL_LED_CC = 0x03;   // on 0xB7 (left) / 0xB8 (right), value 0-127
 // "abs": absolute 0-127, shown as is on the ring
 // "rel": encoder, 0x01 = +1, 0x7F = -1 (two's complement), ring moves a step
 // "jog": jog wheel, 0x40 = no move (value - 64), ring moves with it
-// The pitch faders are 14-bit: MSB on 0x0D (used here), LSB on 0x2D (ignored).
+// The pitch faders are 14-bit: MSB on 0x0D drives the ring, LSB on 0x2D is not bound
+// (it would flood the log).
 VCI380Test.CC = {
     0x07: {name: "VOLUME fader", kind: "abs"},
     0x08: {name: "CROSSFADER", kind: "abs"},
     0x09: {name: "GAIN knob", kind: "abs"},
-    0x0A: {name: "FX DEPTH knob", kind: "abs"},
-    0x0D: {name: "PITCH fader", kind: "abs"},
+    0x0A: {name: "DEPTH knob", kind: "abs"},
+    0x0D: {name: "PITCH fader MSB", kind: "abs"},
     0x46: {name: "EQ LOW knob", kind: "abs"},
     0x47: {name: "EQ MID knob", kind: "abs"},
     0x48: {name: "EQ HIGH knob", kind: "abs"},
-    0x38: {name: "TOUCH STRIP (mode 1)", kind: "abs"},
-    0x39: {name: "TOUCH STRIP (mode 2)", kind: "abs"},
-    0x3A: {name: "TOUCH STRIP (mode 3)", kind: "abs"},
-    0x3B: {name: "TOUCH STRIP (mode 4)", kind: "abs"},
+    0x38: {name: "TOUCH STRIP (HOT CUE mode)", kind: "abs"},
+    0x39: {name: "TOUCH STRIP (SLICER mode)", kind: "abs"},
+    0x3A: {name: "TOUCH STRIP (AUTO LOOP mode)", kind: "abs"},
+    0x3B: {name: "TOUCH STRIP (ROLL mode)", kind: "abs"},
+    0x3C: {name: "TOUCH STRIP (SAMPLER mode)", kind: "abs"},
     0x06: {name: "FX SELECT encoder", kind: "rel"},
     0x0E: {name: "PAD FX encoder", kind: "rel"},
-    0x55: {name: "BROWSE encoder", kind: "rel"},
+    0x55: {name: "SCROLL encoder", kind: "rel"},
     0x45: {name: "JOG WHEEL", kind: "jog"},
-    // seen in the Serato Scratch Live mapping, unknown to the Mixxx mapping:
-    0x3C: {name: "PAD 1 pressure? (Serato: Sample Player Gain)", kind: "abs"},
-    0x5B: {name: "0x5B (Serato: Effect Master Knob 1, Yoi: FX Knob 2 = pad pressure?)", kind: "abs"},
-    0x56: {name: "CF CURVE knob (crossfader curve)", kind: "abs"},
-    0x57: {name: "IF CURVE knob (input fader curve)", kind: "abs"},
-    0x58: {name: "headphone CUE / MASTER mix knob", kind: "abs"},
+    0x5B: {name: "PAD pressure", kind: "abs"},
+    // centre knobs: the hardware mixer uses them for the external inputs
+    0x56: {name: "CF CURVE knob (crossfader curve, also used by the DJ mapping)", kind: "abs"},
+    0x57: {name: "IF CURVE knob (input fader curve, hardware only)", kind: "abs"},
+    0x58: {name: "CUE/MASTER knob (headphone mix, hardware only)", kind: "abs"},
 };
 VCI380Test.BLINK_MS = 300;
 VCI380Test.SELECTED = 0x78;       // colour of the selected pad (white)

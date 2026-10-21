@@ -22,7 +22,7 @@ The MODE buttons of the **left** deck select the test. Test 1 starts at launch.
 | MODE 1 | All lights on: every LED (normal and shift instance), all pads white, both wheel rings |
 | MODE 2 | LEDs one by one: each pad selects an LED, which blinks alternately left / right. Left pads 1-8: SHIFT, SYNC, CUE, PLAY, VINYL, RANGE, PADFX, JOGSCROLL. Right pads 1-5: AREA, VIEW, SORT, BACK, FWD |
 | MODE 3 | Pad colours: left pads select a bright colour, right pads a dimmed one; all 16 pads take it |
-| MODE 4 | Inputs: every fader, knob, encoder, touch strip and jog wheel moves the ring of its deck; every button lights the pads of its deck while held (white, magenta with SHIFT); a pad lights itself. All 128 notes and CCs of channels 7-10 are bound, so codes unknown to the DJ mapping are logged as `UNKNOWN`. Entering the test sends a MIDI Identity Request: the controller answers and then reports the position of every control |
+| MODE 4 | Inputs: every fader, knob, encoder, touch strip and jog wheel moves the ring of its deck; every button lights the pads of its deck while held (white, magenta with SHIFT); a pad lights itself. All notes and CCs of channels 7-10 are bound (except CC `0x2D`, the pitch LSB, which would flood the log), so codes unknown to the DJ mapping are logged as `UNKNOWN`. Entering the test sends a MIDI Identity Request: the controller answers and then reports the position of every control |
 | SHIFT + MODE 1 | Output scan: sends one chosen message at a time, to find hidden outputs (e.g. switching a ring off) |
 
 ### Output scan (SHIFT + left MODE 1)
@@ -36,16 +36,26 @@ The MODE buttons of the **left** deck select the test. Test 1 starts at launch.
 
 Only notes and control changes are sent, never SysEx.
 
-## Codes from other mappings
+## Codes found with this test
 
-Some names in the log come from the Serato Scratch Live and Traktor (DJ
-TechTools) mappings of the VCI-380, for codes the Mixxx mapping doesn't use:
-CC `0x3C`, `0x56`, `0x58` and `0x5B`. Their meaning still has to be confirmed
-on the hardware.
+Besides the controls used by the DJ mapping, the test confirmed:
 
-Tested: the LOAD (headphone cue) and FX ON LEDs are toggled by the hardware
-and can't be driven by MIDI, although some Traktor mappings send notes
-`0x0A` and `0x1C` to them.
+- CC `0x3C`: the touch strip in SAMPLER mode (the strip sends one CC per pad
+  mode, `0x38`-`0x3B` for HOT CUE, SLICER, AUTO LOOP and ROLL).
+- CC `0x5B`: pad pressure (the pads are velocity sensitive).
+- CC `0x56`, `0x57`, `0x58`: the CF CURVE, IF CURVE and CUE/MASTER knobs (see
+  below).
+- Note `0x0B`: the MIXER / PC switch of each channel.
+- Notes on `0x99` / `0x9A` and CCs on `0xB9` / `0xBA`: the same controls with
+  SHIFT held. Note `0x0A` on `0x99` / `0x9A` is the headphone cue state that the
+  controller sends itself when CUE A / CUE B is pressed.
+
+The CUE A / CUE B (headphone cue) and FX ON LEDs are toggled by the hardware and can't
+be driven by MIDI, although some Traktor mappings send notes `0x0A` and `0x1C`
+to them.
+
+Every binding of the mapping has a description (hardware label and what the
+test does with it), shown in the controller preferences of Mixxx.
 
 ## State dump: MIDI Identity Request
 
@@ -64,5 +74,5 @@ pitch, depth, gain, EQ, volume, crossfader and the centre knobs: `0x56` CF CURVE
 CUE / MASTER mix (done by the hardware). The curve knobs don't change the
 MIDI values sent by the crossfader and the faders: like DEPTH and FX ON (a
 hardware high-pass filter), they act on the external inputs mixed by the
-hardware (channel switch on MIXER). A mapping can send it in `init` to start in sync with the
-hardware.
+hardware (channel switch on MIXER). The DJ mapping sends the request in
+`init` to start in sync with the hardware.
