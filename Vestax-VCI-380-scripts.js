@@ -9,6 +9,8 @@ VestaxVCI380.padColor = {"OFF": 0x00, "BLUE": 0x18, "GREEN": 0x28, "CYAN": 0x38,
 
 // NI Stems format: up to 4 stems; one pad row per stem
 VestaxVCI380.MAX_STEMS = 4;
+// Whether our Mixxx version supports stems
+VestaxVCI380.hasStems = false;
 
 // Color mapper
 VestaxVCI380.ColorMapper = new ColorMapper({
@@ -56,32 +58,40 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.setPadColorAll(VestaxVCI380.padColor.WHITE);
     VestaxVCI380.setAllLEDs(true);
 
-    // no soft takeover: Mixxx gets the position of every fader and knob at startup (see syncWithController)
+    // faders and knobs: we get their position with identity reply, and only activate soft takeover after that
+    VestaxVCI380.createPots();
+
+    // check whether our Mixxx version supports stems
+    // warning once ("non-existent" stem_count) and makeConnection returns undefined
+    const stemConnection = engine.makeConnection("[Channel1]", "stem_count", function() {});
+    VestaxVCI380.hasStems = stemConnection !== undefined;
+    if (VestaxVCI380.hasStems) {
+        stemConnection.disconnect();
+    }
 
     // events connection
+    VestaxVCI380.connections.push(engine.makeConnection("[App]", "indicator_250ms", VestaxVCI380.onIndicator250));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "playposition", VestaxVCI380.updatePlayposition));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "playposition", VestaxVCI380.updatePlayposition));
-    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "play", VestaxVCI380.updatePlayStatus));
-    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "play", VestaxVCI380.updatePlayStatus));
-    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "end_of_track", VestaxVCI380.updatePlayStatus));
-    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "end_of_track", VestaxVCI380.updatePlayStatus));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "end_of_track", VestaxVCI380.onEndOfTrack));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "end_of_track", VestaxVCI380.onEndOfTrack));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "track_loaded", VestaxVCI380.onTrackLoaded));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "track_loaded", VestaxVCI380.onTrackLoaded));
-    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "quantize", VestaxVCI380.initLEDs));
-    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "quantize", VestaxVCI380.initLEDs));
-    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "keylock", VestaxVCI380.initLEDs));
-    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "keylock", VestaxVCI380.initLEDs));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "quantize", VestaxVCI380.refreshLEDs));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "quantize", VestaxVCI380.refreshLEDs));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "keylock", VestaxVCI380.refreshLEDs));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "keylock", VestaxVCI380.refreshLEDs));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "rate", VestaxVCI380.onRateChange));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "rate", VestaxVCI380.onRateChange));
-    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "slip_enabled", VestaxVCI380.initLEDs));
-    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "slip_enabled", VestaxVCI380.initLEDs));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "slip_enabled", VestaxVCI380.refreshLEDs));
+    VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "slip_enabled", VestaxVCI380.refreshLEDs));
 
     // turning off all LEDs
     VestaxVCI380.setPadColorAll(VestaxVCI380.padColor.OFF);
     VestaxVCI380.setAllLEDs(false);
 
     // init LEDs status according to settings
-    VestaxVCI380.initLEDs();
+    VestaxVCI380.refreshLEDs();
 
     // default pad mode
     VestaxVCI380.setMode(1, 1);
@@ -93,7 +103,8 @@ VestaxVCI380.init = function(_id, _debugging) {
     // splash screen, once the controller has sent its state (pad mode included)
     engine.beginTimer(500, function() {
         for (let deck = 1; deck <= 2; deck++) {
-            if (engine.getValue(`[Channel${deck}]`, "track_loaded") === 0) {
+            const pot = VestaxVCI380[`deck${deck}`].eq[0];
+            if (VestaxVCI380.padMode[deck - 1] === 1 && engine.getValue(`[Channel${deck}]`, "track_loaded") === 0) {
                 VestaxVCI380.setPadColorSplash(deck);
             }
         }
@@ -137,6 +148,58 @@ VestaxVCI380.syncWithController = function() {
     midi.sendSysexMsg(VestaxVCI380.IDENTITY_REQUEST, VestaxVCI380.IDENTITY_REQUEST.length);
 };
 
+// Detecting reception of the identity request reply
+// Which means the controller will send all control positions
+// After which we can activate the soft takeovers
+VestaxVCI380.incomingData = function(data, length) {
+    // identity reply: F0 7E <id> 06 02 ...
+    if (length > 4 && data[0] === 0xF0 && data[1] === 0x7E && data[3] === 0x06 && data[4] === 0x02) {
+        engine.beginTimer(200, VestaxVCI380.enableSoftTakeover, true);
+    }
+};
+
+// Create some pots to handle soft takeover
+// note: softTakeover is initially disabled because at startup
+//       - the controller can flush a queue of old control movements
+//       - we need to load the events triggered by identity request
+//       after this loading, we will enable soft takeover.
+VestaxVCI380.createPots = function() {
+    for (let deck = 1; deck <= 2; deck++) {
+        const group = `[Channel${deck}]`;
+        VestaxVCI380[`deck${deck}`] = {
+            volume: new components.Pot({group: group, inKey: "volume", softTakeover: false}),
+            pregain: new components.Pot({group: group, inKey: "pregain", softTakeover: false}),
+            rate: new components.Pot({group: group, inKey: "rate", softTakeover: false}), // 14-bit: inputMSB / inputLSB
+            eq: [1, 2, 3].map(parameter => new components.Pot({
+                group: `[EqualizerRack1_${group}_Effect1]`, inKey: `parameter${parameter}`, softTakeover: false,
+            })),
+            depth: new components.Pot({group: `[QuickEffectRack1_${group}]`, inKey: "super1", softTakeover: false}),
+        };
+    }
+    VestaxVCI380.crossfader = new components.Pot({group: "[Master]", inKey: "crossfader", softTakeover: false});
+    VestaxVCI380.balance = new components.Pot({group: "[Master]", inKey: "balance", softTakeover: false});
+    // we map balance to shift+CF which is not standard, so not received by the identity request
+};
+
+// soft takeover on every fader and knob, once Mixxx has their real position
+VestaxVCI380.enableSoftTakeover = function() {
+    const pots = [VestaxVCI380.crossfader, VestaxVCI380.balance];
+    for (let deck = 1; deck <= 2; deck++) {
+        const d = VestaxVCI380[`deck${deck}`];
+        pots.push(d.volume, d.pregain, d.rate, d.depth, ...d.eq);
+    }
+    for (const pot of pots) {
+        pot.softTakeover = true;
+        pot.firstValueReceived = true; // also for the balance, which isn't in the controller state
+        pot.connect();                 // engine.softTakeover(group, inKey, true)
+        // the next value is ignored by soft takeover (it only records the position):
+        // send the current value ourselves, so that Mixxx records the knob as being
+        // exactly where Mixxx is, and the first real move is taken directly
+        if (pot !== VestaxVCI380.balance) {
+            engine.setParameter(pot.group, pot.inKey, engine.getParameter(pot.group, pot.inKey));
+        }
+    }
+};
 
 VestaxVCI380.shutdown = function(_id) {
 
@@ -187,8 +250,6 @@ VestaxVCI380.onPlay = function(channel, control, value, status, group) {
 ////
 // WHEELS
 ////
-
-VestaxVCI380.beatskipTickCount=0;
 
 VestaxVCI380.isScratching=[false, false];
 // The button that enables/disables scratching
@@ -285,16 +346,14 @@ VestaxVCI380.onEQ = function(channel, control, value, _status) {
     const deck=VestaxVCI380.getDeck(channel);
 
     if (!VestaxVCI380.shiftStatus) {
-
-        // regular mode
-        engine.setValue(`[EqualizerRack1_[Channel${deck}]_Effect1]`, `parameter${control-0x45}`, script.absoluteNonLin(value, 0, 1, 4));
+        // regular mode with Pot and soft takeover
+        const pot = VestaxVCI380[`deck${deck}`].eq[control - 0x46];
+        VestaxVCI380[`deck${deck}`].eq[control - 0x46].input(channel, control, value, _status);
     } else {
-
         // shift : KILL mode
+        engine.softTakeoverIgnoreNextValue(`[EqualizerRack1_[Channel${deck}]_Effect1]`, `parameter${control-0x45}`);
         engine.setValue(`[EqualizerRack1_[Channel${deck}]_Effect1]`, `button_parameter${control-0x45}`, (value<0x40 ? 1 : 0));
     }
-
-
 
 };
 
@@ -306,17 +365,23 @@ VestaxVCI380.onEQ = function(channel, control, value, _status) {
 // of its own decks, so the knob drives the curve set in Preferences > Mixer.
 // Same formula as the preferences slider (dlgprefmixer: linearToOneByX).
 VestaxVCI380.onCrossfaderCurve = function(channel, control, value, _status) {
-    const maxCurve = 999.6;
-    const curve = maxCurve / ((127 - value) / 127 * (maxCurve - 1) + 1);
+    if (!engine.getSetting("cfCurveKnob"))  {
+        return; // default behaviour: keep the curve of the preferences
+    }
+    // same as the crossfader curve slider of the preferences (DlgPrefMixer, linearToOneByX):
+    // from 0.6 (smooth) to 999.6 (sharp cut)
+    const curve = 1000 / ((127 - value) / 127 * 999 + 1) - 0.4;
     engine.setValue("[Mixer Profile]", "xFaderCurve", curve);
     engine.setValue("[Mixer Profile]", "xFaderCalibration", Math.pow(0.5, 1 / curve));
 };
 
 VestaxVCI380.onCrossfader = function(channel, control, value, _status) {
     if (VestaxVCI380.shiftStatus) { // SHIFT + crossfader sets Balance
-        engine.setValue("[Master]", "balance", script.absoluteLin(value, -1, 1, 0, 127));
+        engine.softTakeoverIgnoreNextValue("[Master]", "crossfader");
+        VestaxVCI380.balance.input(channel, control, value, _status);
     } else { // crossfader
-        engine.setValue("[Master]", "crossfader", script.absoluteLin(value, -1, 1, 0, 127));
+        engine.softTakeoverIgnoreNextValue("[Master]", "balance");
+        VestaxVCI380.crossfader.input(channel, control, value, _status);
     }
 };
 
@@ -354,7 +419,7 @@ VestaxVCI380.onHeadCue = function(channel, control, value, _status) {
 
 VestaxVCI380.onStrip = function(channel, control, value, _status) {
     const deck=VestaxVCI380.getDeck(channel);
-    if (VestaxVCI380.padMode[deck-1]===4 && VestaxVCI380.pushedButton[deck-1]>=1 && VestaxVCI380.pushedButton[deck-1]<=4) {
+    if (VestaxVCI380.isStemSelected(deck)) {
         engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}_Stem${VestaxVCI380.pushedButton[deck-1]}]`, "volume", script.absoluteLin(value, 0, 1));
     } else if (VestaxVCI380.shiftStatus) { // SHIFT + strip = needle drop on main decks
         engine.setValue(`[Channel${deck}]`, "playposition", script.absoluteLin(value, 0, 0.99)); // 0.99 instead of 1, to avoid unintentional stop while stripping to the end
@@ -438,6 +503,7 @@ VestaxVCI380.onPadTap = function(channel, control, value, _status) {
             break;
 
         case 4: // Stems mode
+            if (!VestaxVCI380.hasStems) { break; } ;
             switch (padNumber) {
             case 1:
             case 2:
@@ -492,7 +558,7 @@ VestaxVCI380.onPadTap = function(channel, control, value, _status) {
             break;
 
         case 4:
-            VestaxVCI380.refreshPadsStem(deck);
+            if (VestaxVCI380.hasStems) { VestaxVCI380.refreshPadsStem(deck); }
             break;
         }
 
@@ -538,54 +604,34 @@ VestaxVCI380.onPadFXPush = function(channel, _control, value, _status) {
 
 ////
 // Track end alert management
+// We make some library LEDs blinking as a warning
 //
 
 VestaxVCI380.trackEndAlert=[false, false];
-VestaxVCI380.trackEndAlertTimer=[0, 0];
-VestaxVCI380.trackEndAlertLEDStatus=[false, false];
 
-VestaxVCI380.updatePlayStatus = function(_value, group, _control) {
+VestaxVCI380.onEndOfTrack = function(value, group, _control) {
     const deck=VestaxVCI380.getDeckFromGroup(group);
-    VestaxVCI380.enableTrackEndAlert(deck, engine.getValue(group, "end_of_track") === 1 && engine.getValue(group, "play") === 1);
+    VestaxVCI380.trackEndAlert[deck-1] = (value === 1);
+    if (!VestaxVCI380.trackEndAlert[deck-1]) {
+        VestaxVCI380.trackEndAlertSetLED(deck, true); // restore LEDs ON while no alert
+    }
 };
 
-VestaxVCI380.enableTrackEndAlert = function(deck, status) {
-    if (status) { // enabling
-        if (!VestaxVCI380.trackEndAlert[deck-1]) { // dont enable if already enabled
-            VestaxVCI380.trackEndAlert[deck-1]=true;
-            VestaxVCI380.trackEndAlertTimer[deck-1]=engine.beginTimer(250, () => { VestaxVCI380.trackEndAlertFlash(deck); });
-        }
-    } else { // disabling
-        if (VestaxVCI380.trackEndAlert[deck-1]) { // dont disable if already disabled
-            VestaxVCI380.trackEndAlert[deck-1]=false;
-            VestaxVCI380.trackEndAlertLEDStatus[deck-1]=false;
-            if (VestaxVCI380.trackEndAlertTimer[deck-1]!==0) {
-                engine.stopTimer(VestaxVCI380.trackEndAlertTimer[deck-1]);
-                VestaxVCI380.trackEndAlertTimer[deck-1]=0;
-            }
-            VestaxVCI380.trackEndAlertNoFlash(deck);
+VestaxVCI380.onIndicator250 = function(value, _group, _control) {
+    for (let deck = 1; deck <= 2; deck++) {
+        if (VestaxVCI380.trackEndAlert[deck-1]) {
+            VestaxVCI380.trackEndAlertSetLED(deck, value === 1);
         }
     }
 };
 
-VestaxVCI380.trackEndAlertFlash = function(deck) {
-    VestaxVCI380.trackEndAlertLEDStatus[deck-1]=!VestaxVCI380.trackEndAlertLEDStatus[deck-1];
+VestaxVCI380.trackEndAlertSetLED = function(deck, state) {
     if (deck===1) {
-        VestaxVCI380.setLED(1, VestaxVCI380.LED.AREA, VestaxVCI380.trackEndAlertLEDStatus[deck-1]);
-        VestaxVCI380.setLED(1, VestaxVCI380.LED.BACK, VestaxVCI380.trackEndAlertLEDStatus[deck-1]);
+        VestaxVCI380.setLED(1, VestaxVCI380.LED.AREA, state);
+        VestaxVCI380.setLED(1, VestaxVCI380.LED.BACK, state);
     } else {
-        VestaxVCI380.setLED(1, VestaxVCI380.LED.SORT, VestaxVCI380.trackEndAlertLEDStatus[deck-1]);
-        VestaxVCI380.setLED(1, VestaxVCI380.LED.FWD, VestaxVCI380.trackEndAlertLEDStatus[deck-1]);
-    }
-};
-
-VestaxVCI380.trackEndAlertNoFlash = function(deck) {
-    if (deck===1) {
-        VestaxVCI380.setLED(1, VestaxVCI380.LED.AREA, true);
-        VestaxVCI380.setLED(1, VestaxVCI380.LED.BACK, true);
-    } else {
-        VestaxVCI380.setLED(1, VestaxVCI380.LED.SORT, true);
-        VestaxVCI380.setLED(1, VestaxVCI380.LED.FWD, true);
+        VestaxVCI380.setLED(1, VestaxVCI380.LED.SORT, state);
+        VestaxVCI380.setLED(1, VestaxVCI380.LED.FWD, state);
     }
 };
 
@@ -665,8 +711,8 @@ VestaxVCI380.makeConnectionsForMode = function(deck, mode) {
         break;
 
     case 4 : // stems
-        connector=engine.makeConnection(`[Channel${deck}]`, "stem_count", VestaxVCI380.onStemChange);
-        if (connector !== undefined) { // To keep compatibility with Mixxx versions without stem
+        if (VestaxVCI380.hasStems) { // To keep compatibility with Mixxx versions without stem
+            connector=engine.makeConnection(`[Channel${deck}]`, "stem_count", VestaxVCI380.onStemChange);
             connector.trigger();
             VestaxVCI380.modeConnections[deck-1].push(connector);
             for (let stem = 1; stem <= VestaxVCI380.MAX_STEMS; stem++) {
@@ -813,9 +859,15 @@ VestaxVCI380.onLoopEnabled = function(value, group, _control) {
 // Managing effects
 ////
 
+// true while a stem is selected (upper pad held in stems mode)
+VestaxVCI380.isStemSelected = function(deck) {
+    return VestaxVCI380.hasStems && VestaxVCI380.padMode[deck-1]===4 &&
+        VestaxVCI380.pushedButton[deck-1]>=1 && VestaxVCI380.pushedButton[deck-1]<=4;
+};
+
 VestaxVCI380.getFXGroup = function(channel) {
     const deck=VestaxVCI380.getDeck(channel);
-    if (VestaxVCI380.padMode[deck-1]===4 && VestaxVCI380.pushedButton[deck-1]>=1 && VestaxVCI380.pushedButton[deck-1]<=4) {
+    if (VestaxVCI380.isStemSelected(deck)) {
         return (`[QuickEffectRack1_[Channel${VestaxVCI380.getDeck(channel)}_Stem${VestaxVCI380.pushedButton[deck-1]}]]`);
     } else {
         return (`[QuickEffectRack1_[Channel${VestaxVCI380.getDeck(channel)}]]`);
@@ -824,7 +876,13 @@ VestaxVCI380.getFXGroup = function(channel) {
 
 VestaxVCI380.onFXDepth = function(channel, control, value, _status) {
     const group=VestaxVCI380.getFXGroup(channel);
-    engine.setValue(group, "super1", script.absoluteLin(value, 0, 1));
+    const depth=VestaxVCI380[`deck${VestaxVCI380.getDeck(channel)}`].depth;
+    if (depth.group !== group) {
+        depth.disconnect();
+        depth.group = group;
+        depth.connect();
+    }
+    depth.input(channel, control, value, _status);
 };
 
 VestaxVCI380.onFXSelect = function(channel, control, value, _status) {
@@ -893,7 +951,7 @@ VestaxVCI380.setAllLEDs = function(state) {
     }
 };
 
-VestaxVCI380.initLEDs = function() {
+VestaxVCI380.refreshLEDs = function() {
     VestaxVCI380.setLED(1, VestaxVCI380.LED.RANGE, engine.getValue("[Channel1]", "quantize")===1);
     VestaxVCI380.setLED(2, VestaxVCI380.LED.RANGE, engine.getValue("[Channel2]", "quantize")===1);
     VestaxVCI380.setLED(3, VestaxVCI380.LED.RANGE, engine.getValue("[Channel1]", "keylock")===1);
@@ -902,11 +960,12 @@ VestaxVCI380.initLEDs = function() {
     VestaxVCI380.setLED(2, VestaxVCI380.LED.VINYL, engine.getValue("[Channel2]", "slip_enabled")===1);
     VestaxVCI380.setLED(1, VestaxVCI380.LED.PADFX, engine.getValue("[Channel1]", "rate")!==0);
     VestaxVCI380.setLED(2, VestaxVCI380.LED.PADFX, engine.getValue("[Channel2]", "rate")!==0);
-    // library control
-    VestaxVCI380.setLED(1, VestaxVCI380.LED.AREA, true);
-    VestaxVCI380.setLED(1, VestaxVCI380.LED.SORT, true);
-    VestaxVCI380.setLED(1, VestaxVCI380.LED.BACK, true);
-    VestaxVCI380.setLED(1, VestaxVCI380.LED.FWD, true);
+    // library LEDs: always on, they only blink for the track end alert
+    for (let deck = 1; deck <= 2; deck++) {
+        if (!VestaxVCI380.trackEndAlert[deck - 1]) {
+            VestaxVCI380.trackEndAlertSetLED(deck, true);
+        }
+    }
 };
 
 /////

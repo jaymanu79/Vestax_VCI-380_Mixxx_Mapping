@@ -3,7 +3,7 @@ I would appreciate any feedback, suggestions for changes or improvement.
 
 # Where to get Mixxx
 Download and install Mixxx DJ software from [Mixxx website](https://mixxx.org/)   
-If you want to use Stems feature, be sure to get [Beta version 2.6](https://mixxx.org/download/#beta). Current stable version 2.5.1 doesn't have the Stems feature yet. 
+The mapping requires Mixxx 2.5 or later. The Stems feature requires Mixxx 2.6 or later ([beta version](https://mixxx.org/download/#beta) at the time of writing). 
 
 # How to install the mapping
 - Copy the 2 files `Vestax VCI-380.midi.xml` and `Vestax-VCI-380-scripts.js` to the "Controllers" folder of Mixxx:
