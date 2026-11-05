@@ -94,7 +94,8 @@ VestaxVCI380.init = function(_id, _debugging) {
     // init LEDs status according to settings
     VestaxVCI380.refreshLEDs();
 
-    // default pad mode
+    // pad mode, shown after the pads stayed white for a moment; this also spreads the MIDI
+    // messages in time (the controller stops handling incoming MIDI beyond about 400 at once)
     engine.beginTimer(300, function() {
         VestaxVCI380.setMode(1, VestaxVCI380.padMode[0]);
         VestaxVCI380.setMode(2, VestaxVCI380.padMode[1]);
