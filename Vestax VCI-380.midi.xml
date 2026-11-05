@@ -29,6 +29,16 @@
         Disable if the headphones are plugged into another sound card: the controller CUE/MASTER knob then sets the headphone mix of Mixxx.
       </description>
     </option>
+    <option variable="pcMixerSwitch" type="enum" label="PC / MIXER switches also control Mixxx inputs">
+      <value label="No (the switches only act on the controller)" default="true">none</value>
+      <value label="Auxiliary inputs">auxiliary</value>
+      <value label="Vinyl control">vinyl</value>
+      <description>
+        With Auxiliary inputs: the PC position plays the RCA input of the channel through Mixxx (Auxiliary 1 for the left channel, Auxiliary 2 for the right one), the MIXER position mutes it in Mixxx, so the source isn't heard twice.
+        With Vinyl control: the PC position enables vinyl control on the deck of the channel, the MIXER position disables it.
+        The inputs must be set up in Preferences > Sound Hardware > Input.
+      </description>
+    </option>
   </settings>
   <controller id="VestaxVCI380">
     <scriptfiles>
@@ -71,6 +81,46 @@
         <description>CUE/MASTER knob: headphone mix of Mixxx, if the headMixInController option is disabled</description>
         <status>0xB7</status>
         <midino>0x58</midino>
+        <options>
+          <script-binding/>
+        </options>
+      </control>
+      <control>
+        <group>[Channel1]</group>
+        <key>VestaxVCI380.onPCMixer</key>
+        <description>Left PC / MIXER switch: MIXER (Mixxx inputs, with the pcMixerSwitch option)</description>
+        <status>0x97</status>
+        <midino>0x0B</midino>
+        <options>
+          <script-binding/>
+        </options>
+      </control>
+      <control>
+        <group>[Channel1]</group>
+        <key>VestaxVCI380.onPCMixer</key>
+        <description>Left PC / MIXER switch: PC (Mixxx inputs, with the pcMixerSwitch option)</description>
+        <status>0x87</status>
+        <midino>0x0B</midino>
+        <options>
+          <script-binding/>
+        </options>
+      </control>
+      <control>
+        <group>[Channel2]</group>
+        <key>VestaxVCI380.onPCMixer</key>
+        <description>Right PC / MIXER switch: MIXER (Mixxx inputs, with the pcMixerSwitch option)</description>
+        <status>0x98</status>
+        <midino>0x0B</midino>
+        <options>
+          <script-binding/>
+        </options>
+      </control>
+      <control>
+        <group>[Channel2]</group>
+        <key>VestaxVCI380.onPCMixer</key>
+        <description>Right PC / MIXER switch: PC (Mixxx inputs, with the pcMixerSwitch option)</description>
+        <status>0x88</status>
+        <midino>0x0B</midino>
         <options>
           <script-binding/>
         </options>

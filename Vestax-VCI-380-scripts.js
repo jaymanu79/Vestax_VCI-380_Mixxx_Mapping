@@ -438,6 +438,24 @@ VestaxVCI380.onHeadMix = function(channel, control, value, status) {
     VestaxVCI380.headMix.input(channel, control, value, status);
 };
 
+// PC / MIXER switch of a channel (note 0x0B: Note on 7F = MIXER, Note off = PC).
+// The controller mutes the RCA input in its own mixer in PC position, but always sends it
+// to the computer. With the pcMixerSwitch option, the switch also enables the Mixxx input
+// of the channel in PC position and disables it in MIXER position.
+VestaxVCI380.onPCMixer = function(channel, _control, value, status) {
+    const option = engine.getSetting("pcMixerSwitch");
+    if (option !== "auxiliary" && option !== "vinyl") {
+        return;
+    }
+    const deck = VestaxVCI380.getDeck(channel);
+    const toPC = (status & 0xF0) === 0x80 || value === 0x00;
+    if (option === "auxiliary") {
+        engine.setValue(`[Auxiliary${deck}]`, "main_mix", toPC ? 1 : 0);
+    } else {
+        engine.setValue(`[Channel${deck}]`, "vinylcontrol_enabled", toPC ? 1 : 0);
+    }
+};
+
 ////
 // BUTTONS
 ////
