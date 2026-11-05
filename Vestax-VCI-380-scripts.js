@@ -54,9 +54,9 @@ VestaxVCI380.modeConnections[1]=[]; // .. for deck 2
 
 VestaxVCI380.init = function(_id, _debugging) {
 
-    // all lights ON
+    // all pads will flash white as a visual cue that the mapping started or restarted correctly
+    // we avoid flashing the other LEDs as that would cause a MIDI buffer overflow on the controller
     VestaxVCI380.setPadColorAll(VestaxVCI380.padColor.WHITE);
-    // VestaxVCI380.setAllLEDs(true); // Removed that part because it caused a buffer overflow to the controllers when the mapping is reloaded several times at once. It was just a useless visual effect.
 
     // faders and knobs: we get their position with identity reply, and only activate soft takeover after that
     VestaxVCI380.createPots();
