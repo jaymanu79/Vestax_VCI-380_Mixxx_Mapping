@@ -355,13 +355,13 @@ VestaxVCI380.onSelectTrackKnob = function(channel, control, value, _status) {
 };
 
 //EQs - managed by script in order to enable KILL function with shift
-VestaxVCI380.onEQ = function(channel, control, value, _status) {
+VestaxVCI380.onEQ = function(channel, control, value, status) {
     const deck=VestaxVCI380.getDeck(channel);
 
     if (!VestaxVCI380.shiftStatus) {
         // regular mode with Pot and soft takeover
         const pot = VestaxVCI380[`deck${deck}`].eq[control - 0x46];
-        pot.input(channel, control, value, _status);
+        pot.input(channel, control, value, status);
     } else {
         // shift : KILL mode
         engine.softTakeoverIgnoreNextValue(`[EqualizerRack1_[Channel${deck}]_Effect1]`, `parameter${control-0x45}`);
@@ -434,7 +434,7 @@ VestaxVCI380.onHeadCue = function(channel, control, value, _status) {
 VestaxVCI380.onStrip = function(channel, control, value, _status) {
     const deck=VestaxVCI380.getDeck(channel);
     if (VestaxVCI380.isStemSelected(deck)) {
-        engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}_Stem${VestaxVCI380.pushedButton[deck-1]}]`, "volume", script.absoluteLin(value, 0, 1));
+        engine.setValue(`[Channel${deck}_Stem${VestaxVCI380.pushedButton[deck-1]}]`, "volume", script.absoluteLin(value, 0, 1));
     } else if (VestaxVCI380.shiftStatus) { // SHIFT + strip = needle drop on main decks
         engine.setValue(`[Channel${deck}]`, "playposition", script.absoluteLin(value, 0, 0.99)); // 0.99 instead of 1, to avoid unintentional stop while stripping to the end
     } else { // without shift : needle drop in the preview deck
