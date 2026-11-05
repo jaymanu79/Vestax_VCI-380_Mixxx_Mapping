@@ -62,8 +62,7 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.createPots();
 
     // check whether our Mixxx version supports stems
-    // warning once ("non-existent" stem_count) and makeConnection returns undefined
-    // on 2.5, we detect the absence of SoftTakeoverWillIgnore which is a 2.6 control. This avoids probing the unexistent stem_count which would log a "non-existent control" warning
+    // on 2.5, we detect the absence of softTakeoverWillIgnore which is a 2.6 function. This avoids probing the unexistent stem_count which would log a "non-existent control" warning
     if ("softTakeoverWillIgnore" in engine) {
         const stemConnection = engine.makeConnection("[Channel1]", "stem_count", function() {});
         VestaxVCI380.hasStems = stemConnection !== undefined;
@@ -389,13 +388,13 @@ VestaxVCI380.onCrossfaderCurve = function(channel, control, value, _status) {
     engine.setValue("[Mixer Profile]", "xFaderCalibration", Math.pow(0.5, 1 / curve));
 };
 
-VestaxVCI380.onCrossfader = function(channel, control, value, _status) {
+VestaxVCI380.onCrossfader = function(channel, control, value, status) {
     if (VestaxVCI380.shiftStatus) { // SHIFT + crossfader sets Balance
         engine.softTakeoverIgnoreNextValue("[Master]", "crossfader");
-        VestaxVCI380.balance.input(channel, control, value, _status);
+        VestaxVCI380.balance.input(channel, control, value, status);
     } else { // crossfader
         engine.softTakeoverIgnoreNextValue("[Master]", "balance");
-        VestaxVCI380.crossfader.input(channel, control, value, _status);
+        VestaxVCI380.crossfader.input(channel, control, value, status);
     }
 };
 
@@ -888,7 +887,7 @@ VestaxVCI380.getFXGroup = function(channel) {
     }
 };
 
-VestaxVCI380.onFXDepth = function(channel, control, value, _status) {
+VestaxVCI380.onFXDepth = function(channel, control, value, status) {
     const group=VestaxVCI380.getFXGroup(channel);
     const depth=VestaxVCI380[`deck${VestaxVCI380.getDeck(channel)}`].depth;
     if (depth.group !== group) {
@@ -896,7 +895,7 @@ VestaxVCI380.onFXDepth = function(channel, control, value, _status) {
         depth.group = group;
         depth.connect();
     }
-    depth.input(channel, control, value, _status);
+    depth.input(channel, control, value, status);
 };
 
 VestaxVCI380.onFXSelect = function(channel, control, value, _status) {
