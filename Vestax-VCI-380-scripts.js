@@ -148,6 +148,16 @@ VestaxVCI380.init = function(_id, _debugging) {
 //   if the headMixInController option is disabled (onHeadMix).
 // - CC 0x5B on 0xB7 / 0xB8: pad pressure (one value per deck); the pad notes
 //   also carry the velocity.
+// - CC 0x03 on 0xB7 / 0xB8 (output): position of the jog wheel LED (0x00-0x7F);
+//   no message found to switch it off.
+// - CC 0x04 on 0xB7 / 0xB8 (output): lights the left / right column of the level
+//   meter for a moment only: the controller overwrites it with its own measurement
+//   a few ms later (also with CUE on), so the level meter can't be driven by the
+//   mapping; sent repeatedly, the column flickers.
+// - The controller stops handling incoming MIDI (LEDs frozen, no identity reply,
+//   "rawmidi drain error" in the kernel log) when it gets more than about 400
+//   messages at once, or more than about 1000 per second for a while, until it is
+//   switched off and on again (a USB reset doesn't help).
 // - MODE buttons are radio buttons handled by the hardware: changing mode sends
 //   the old mode with 00, then the new one with 7F.
 // - DEPTH (CC 0x0A) and FX ON (note 0x1C) also drive a hardware high-pass filter

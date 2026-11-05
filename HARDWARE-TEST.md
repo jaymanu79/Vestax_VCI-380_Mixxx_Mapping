@@ -54,6 +54,31 @@ The CUE A / CUE B (headphone cue) and FX ON LEDs are toggled by the hardware and
 be driven by MIDI, although some Traktor mappings send notes `0x0A` and `0x1C`
 to them.
 
+Outputs found later with `amidi` (one message at a time, Mixxx closed):
+
+- CC `0x03` on `0xB7` / `0xB8`: position of the jog wheel LED (`0x00`-`0x7F`). No
+  message found to switch it off (CCs `0x00`-`0x7F` on `0xB7` tested).
+- CC `0x04` on `0xB7` / `0xB8`: lights the left / right column of the level meter
+  for a moment only. The controller overwrites it with its own measurement a few
+  ms later, also when CUE A / CUE B is on; sent every 20 ms, the column flickers.
+  So the level meter can't be driven by a mapping, but a single message gives a
+  short flash, usable as an alert.
+
+## MIDI input limit
+
+The controller stops handling incoming MIDI when it receives too much at once:
+LEDs frozen, no reply to the identity request, while its controls still work.
+The kernel log shows `rawmidi drain error` when the port is closed. Measured with
+`amidi` (Mixxx closed, controller switched off and on before each test):
+
+- one burst of 400 note messages is handled, 450 blocks it;
+- 1200 messages sent 100 at a time every 50 ms block it, 50 at a time every
+  50 ms (1000 per second) are handled.
+
+Only switching the controller off and on again unblocks it: a USB reset
+(`usbreset`, or `authorized` 0 then 1 in sysfs) doesn't help. The DJ mapping
+keeps its bursts small for this reason (no flash of all the LEDs at startup).
+
 Every binding of the mapping has a description (hardware label and what the
 test does with it), shown in the controller preferences of Mixxx.
 
