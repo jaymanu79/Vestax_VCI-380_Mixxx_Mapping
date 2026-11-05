@@ -135,8 +135,8 @@ VestaxVCI380.init = function(_id, _debugging) {
 // Hardware facts found by testing the controller, not used here:
 // - note 0x0B on 0x97 / 0x98: MIXER / PC switch of the channel, which mutes its
 //   external input (7F = MIXER, input heard; 00 = PC, input muted). The sound
-//   card audio goes through in both positions, so the mapping doesn't need to
-//   change anything.
+//   card audio goes through in both positions, with the pcMixerSwitch option, the
+//   switch also enables or disables the Mixxx input of the channel (onPCMixer)
 // - CC 0x56, 0x57, 0x58 on 0xB7: knobs of the centre section.
 //   0x56 CF CURVE (crossfader curve) and 0x57 IF CURVE (input fader = channel
 //   fader curve): they don't change the MIDI values sent by the crossfader and
@@ -491,7 +491,9 @@ VestaxVCI380.onHeadCue = function(channel, control, value, _status) {
 VestaxVCI380.onStrip = function(channel, control, value, _status) {
     const deck=VestaxVCI380.getDeck(channel);
     if (VestaxVCI380.isStemSelected(deck)) {
-        engine.setValue(`[Channel${deck}_Stem${VestaxVCI380.pushedButton[deck-1]}]`, "volume", script.absoluteLin(value, 0, 1));
+        for (const stem of VestaxVCI380.heldStems[deck-1]) {
+            engine.setValue(`[Channel${deck}_Stem${stem}]`, "volume", script.absoluteLin(value, 0, 1));
+        }
     } else if (VestaxVCI380.shiftStatus) { // SHIFT + strip = needle drop on main decks
         engine.setValue(`[Channel${deck}]`, "playposition", script.absoluteLin(value, 0, 0.99)); // 0.99 instead of 1, to avoid unintentional stop while stripping to the end
     } else { // without shift : needle drop in the preview deck
@@ -505,6 +507,9 @@ VestaxVCI380.onStrip = function(channel, control, value, _status) {
 
 // currently pushed button
 VestaxVCI380.pushedButton=[0, 0];
+
+// Keep a list of held stems per deck
+VestaxVCI380.heldStems=[[], []];
 
 // when tapped (used as buttons)
 VestaxVCI380.onPadTap = function(channel, control, value, _status) {
@@ -579,15 +584,23 @@ VestaxVCI380.onPadTap = function(channel, control, value, _status) {
             case 1:
             case 2:
             case 3:
-            case 4: // select stem for FX and volume
+            case 4: // select stem for FX and volume: several pads can be held at once
+                if (padNumber <= engine.getValue(`[Channel${deck}]`, "stem_count") &&
+                    VestaxVCI380.heldStems[deck-1].indexOf(padNumber) === -1) {
+                    VestaxVCI380.heldStems[deck-1].push(padNumber);
+                }
                 midi.sendShortMsg(0x96+deck, 0x3B+padNumber, VestaxVCI380.padColor.WHITE);
                 break;
             case 5:
             case 6:
             case 7:
-            case 8: // mute/unmute stem
-                group=`[Channel${deck}_Stem${padNumber-4}]`;
-                engine.setValue(group, "mute", (engine.getValue(group, "mute")===0 ? 1 : 0));
+            case 8:
+                if (VestaxVCI380.shiftStatus) { // SHIFT: solo stem
+                    VestaxVCI380.toggleStemSolo(deck, padNumber-4);
+                } else { // mute/unmute stem
+                    group=`[Channel${deck}_Stem${padNumber-4}]`;
+                    engine.setValue(group, "mute", (engine.getValue(group, "mute")===0 ? 1 : 0));
+                }
                 break;
             }
             break;
@@ -615,6 +628,8 @@ VestaxVCI380.onPadTap = function(channel, control, value, _status) {
 
     } else { // PAD released
         VestaxVCI380.pushedButton[deck-1]=0;
+        // whatever the mode (it may have changed while the pad was held)
+        VestaxVCI380.heldStems[deck-1] = VestaxVCI380.heldStems[deck-1].filter(stem => stem !== padNumber);
         switch (VestaxVCI380.padMode[deck-1]) {
         case 1: // in mode 1, releasing pad de-activates and resets pad color for hotcue
             engine.setValue(`[Channel${deck}]`, `hotcue_${padNumber}_activate`, 0);
@@ -825,12 +840,31 @@ VestaxVCI380.refreshPadsStem = function(deck) {
     for (let stem = 1; stem <= numStems; stem++) {
         const stemColor=VestaxVCI380.ColorMapper.getValueForNearestColor(engine.getValue(`[Channel${deck}_Stem${stem}]`, "color"));
         const stemColorDim=stemColor-8;
-        midi.sendShortMsg(0x96+deck, 0x3B+stem, stemColor);
+        midi.sendShortMsg(0x96+deck, 0x3B+stem, VestaxVCI380.heldStems[deck-1].indexOf(stem) !== -1 ? VestaxVCI380.padColor.WHITE : stemColor);
         midi.sendShortMsg(0x96+deck, 0x3B+stem+4, engine.getValue(`[Channel${deck}_Stem${stem}]`, "mute")===0 ? stemColor : stemColorDim);
     }
     for (let emptyStem=numStems+1; emptyStem <= VestaxVCI380.MAX_STEMS; emptyStem++) {
         midi.sendShortMsg(0x96+deck, 0x3B+emptyStem, VestaxVCI380.padColor.dimWHITE);
         midi.sendShortMsg(0x96+deck, 0x3B+emptyStem+4, VestaxVCI380.padColor.dimWHITE);
+    }
+};
+
+// SHIFT + lower pad in stems mode: only this stem is heard (the others are muted);
+// again on the stem already alone: all stems are heard again
+VestaxVCI380.toggleStemSolo = function(deck, soloStem) {
+    const numStems=engine.getValue(`[Channel${deck}]`, "stem_count");
+    if (soloStem > numStems) {
+        return;
+    }
+    let alone=true;
+    for (let stem = 1; stem <= numStems; stem++) {
+        const muted=engine.getValue(`[Channel${deck}_Stem${stem}]`, "mute")===1;
+        if (muted !== (stem !== soloStem)) {
+            alone=false;
+        }
+    }
+    for (let stem = 1; stem <= numStems; stem++) {
+        engine.setValue(`[Channel${deck}_Stem${stem}]`, "mute", (alone || stem === soloStem) ? 0 : 1);
     }
 };
 
@@ -933,20 +967,27 @@ VestaxVCI380.onLoopEnabled = function(value, group, _control) {
 // true while a stem is selected (upper pad held in stems mode)
 VestaxVCI380.isStemSelected = function(deck) {
     return VestaxVCI380.hasStems && VestaxVCI380.padMode[deck-1]===4 &&
-        VestaxVCI380.pushedButton[deck-1]>=1 && VestaxVCI380.pushedButton[deck-1]<=4;
+        VestaxVCI380.heldStems[deck-1].length > 0;
 };
 
-VestaxVCI380.getFXGroup = function(channel) {
+VestaxVCI380.getFXGroups = function(channel) {
     const deck=VestaxVCI380.getDeck(channel);
     if (VestaxVCI380.isStemSelected(deck)) {
-        return (`[QuickEffectRack1_[Channel${VestaxVCI380.getDeck(channel)}_Stem${VestaxVCI380.pushedButton[deck-1]}]]`);
+        return VestaxVCI380.heldStems[deck-1].map(stem => `[QuickEffectRack1_[Channel${deck}_Stem${stem}]]`);
     } else {
         return (`[QuickEffectRack1_[Channel${VestaxVCI380.getDeck(channel)}]]`);
     }
 };
 
 VestaxVCI380.onFXDepth = function(channel, control, value, status) {
-    const group=VestaxVCI380.getFXGroup(channel);
+    const groups=VestaxVCI380.getFXGroups(channel);
+    if (groups.length > 1) { // several stems: no soft takeover, they all take the knob value
+        for (const group of groups) {
+            engine.setParameter(group, "super1", value / 127);
+        }
+        return;
+    }
+    const group=groups[0];
     const depth=VestaxVCI380[`deck${VestaxVCI380.getDeck(channel)}`].depth;
     if (depth.group !== group) {
         depth.disconnect();
@@ -957,20 +998,23 @@ VestaxVCI380.onFXDepth = function(channel, control, value, status) {
 };
 
 VestaxVCI380.onFXSelect = function(channel, control, value, _status) {
-    const group=VestaxVCI380.getFXGroup(channel);
-    engine.setValue(group, "chain_preset_selector", value === 0x7F ? 1 : -1);
+    for (const group of VestaxVCI380.getFXGroups(channel)) {
+        engine.setValue(group, "chain_preset_selector", value === 0x7F ? 1 : -1);
+    }
 };
 
 VestaxVCI380.onFXSelectPush = function(channel, _control, value, _status) {
     if (value === 0x7F) {
-        const group=VestaxVCI380.getFXGroup(channel);
-        engine.setValue(group, "loaded_chain_preset", 1);
+        for (const group of VestaxVCI380.getFXGroups(channel)) {
+            engine.setValue(group, "loaded_chain_preset", 1);
+        }
     }
 };
 
 VestaxVCI380.onFXOnOff = function(channel, control, value, _status) {
-    const group=VestaxVCI380.getFXGroup(channel);
-    engine.setValue(group, "enabled", (value === 0x7F) ? 1 : 0);
+    for (const group of VestaxVCI380.getFXGroups(channel)) {
+        engine.setValue(group, "enabled", (value === 0x7F) ? 1 : 0);
+    }
 };
 
 
