@@ -62,7 +62,7 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.createPots();
 
     // check whether our Mixxx version supports stems
-    // on 2.5, we detect the absence of softTakeoverWillIgnore which is a 2.6 function. This avoids probing the unexistent stem_count which would log a "non-existent control" warning
+    // on 2.5, we detect the absence of softTakeoverWillIgnore which is a 2.6 function. This avoids probing the non-existent stem_count which would log a "non-existent control" warning
     if ("softTakeoverWillIgnore" in engine) {
         const stemConnection = engine.makeConnection("[Channel1]", "stem_count", function() {});
         VestaxVCI380.hasStems = stemConnection !== undefined;
@@ -89,15 +89,16 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "slip_enabled", VestaxVCI380.refreshLEDs));
 
     // turning off all LEDs
-    VestaxVCI380.setPadColorAll(VestaxVCI380.padColor.OFF);
     VestaxVCI380.setAllLEDs(false);
 
     // init LEDs status according to settings
     VestaxVCI380.refreshLEDs();
 
     // default pad mode
-    VestaxVCI380.setMode(1, 1);
-    VestaxVCI380.setMode(2, 1);
+    engine.beginTimer(300, function() {
+        VestaxVCI380.setMode(1, VestaxVCI380.padMode[0]);
+        VestaxVCI380.setMode(2, VestaxVCI380.padMode[1]);
+    }, true);
 
     // align Mixxx with the current position of the faders, knobs and switches
     VestaxVCI380.syncWithController();
@@ -183,7 +184,10 @@ VestaxVCI380.createPots = function() {
     }
     VestaxVCI380.crossfader = new components.Pot({group: "[Master]", inKey: "crossfader", softTakeover: false});
     VestaxVCI380.balance = new components.Pot({group: "[Master]", inKey: "balance", softTakeover: false});
-    // we map balance to shift+CF which is not standard, so not received by the identity request
+    // balance is mapped to SHIFT + crossfader, which is not standard: it is not in the controller
+    // state sent after the identity request, and onCrossfader makes soft takeover ignore the
+    // first SHIFT + crossfader value after the crossfader moved (the fader position is the
+    // crossfader one), so that value is only used to learn the position
 };
 
 // whether the softTakeover has been enabled, from identity reply or fallback timer
