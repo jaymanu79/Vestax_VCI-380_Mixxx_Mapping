@@ -6,7 +6,10 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md] # two trailing spaces = line break in Markdown
+        exclude: \.patch$ # trailing spaces are meaningful in patches
       - id: end-of-file-fixer
+        exclude: \.patch$
       - id: mixed-line-ending
       - id: check-xml
   - repo: https://github.com/pre-commit/mirrors-eslint
