@@ -132,10 +132,10 @@ VestaxVCI380.init = function(_id, _debugging) {
 // Identity reply: F0 7E 00 06 02  00 40 02 (maker)  40 02 (family = USB product
 // ID 0x0240)  00 00 (model)  02 01 01 00 (version)  F7
 //
-// Hardware facts found by testing the controller, not used here:
+// Hardware facts found by testing the controller:
 // - note 0x0B on 0x97 / 0x98: MIXER / PC switch of the channel, which mutes its
 //   external input (7F = MIXER, input heard; 00 = PC, input muted). The sound
-//   card audio goes through in both positions, with the pcMixerSwitch option, the
+//   card audio goes through in both positions. With the pcMixerSwitch option, the
 //   switch also enables or disables the Mixxx input of the channel (onPCMixer)
 // - CC 0x56, 0x57, 0x58 on 0xB7: knobs of the centre section.
 //   0x56 CF CURVE (crossfader curve) and 0x57 IF CURVE (input fader = channel
@@ -975,7 +975,7 @@ VestaxVCI380.getFXGroups = function(channel) {
     if (VestaxVCI380.isStemSelected(deck)) {
         return VestaxVCI380.heldStems[deck-1].map(stem => `[QuickEffectRack1_[Channel${deck}_Stem${stem}]]`);
     } else {
-        return (`[QuickEffectRack1_[Channel${VestaxVCI380.getDeck(channel)}]]`);
+        return [`[QuickEffectRack1_[Channel${deck}]]`];
     }
 };
 
@@ -998,8 +998,18 @@ VestaxVCI380.onFXDepth = function(channel, control, value, status) {
 };
 
 VestaxVCI380.onFXSelect = function(channel, control, value, _status) {
-    for (const group of VestaxVCI380.getFXGroups(channel)) {
-        engine.setValue(group, "chain_preset_selector", value === 0x7F ? 1 : -1);
+    const groups=VestaxVCI380.getFXGroups(channel);
+    const direction = (value === 0x7F) ? 1 : -1;
+    if (groups.length === 1) {
+        engine.setValue(groups[0], "chain_preset_selector", direction);
+        return;
+    }
+    // several stems: they all get the next / previous preset of the first held stem,
+    // so that they stay on the same preset
+    const num = engine.getValue(groups[0], "num_chain_presets");
+    const index = (engine.getValue(groups[0], "loaded_chain_preset") + direction + num) % num;
+    for (const group of groups) {
+        engine.setValue(group, "loaded_chain_preset", index);
     }
 };
 
