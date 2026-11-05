@@ -288,7 +288,7 @@
       <control>
         <group>[Channel1]</group>
         <key>VestaxVCI380.onFXSelect</key>
-        <description>Left FX SELECT encoder: quick effect chain preset (held stems in stem mode)</description>
+        <description>Left FX SELECT encoder: quick effect chain preset (held stems in stems mode)</description>
         <status>0xB7</status>
         <midino>0x06</midino>
         <options>
@@ -308,7 +308,7 @@
       <control>
         <group>[Channel2]</group>
         <key>VestaxVCI380.onFXSelect</key>
-        <description>Right FX SELECT encoder: quick effect chain preset (held stems in stem mode)</description>
+        <description>Right FX SELECT encoder: quick effect chain preset (held stems in stems mode)</description>
         <status>0xB8</status>
         <midino>0x06</midino>
         <options>
@@ -1188,7 +1188,7 @@
       <control>
         <group>[Channel1]</group>
         <key>VestaxVCI380.onFXOnOff</key>
-        <description>Left FX ON/OFF switch: quick effect on/off (hardware toggle, state sent) (held stems in stem mode)</description>
+        <description>Left FX ON/OFF switch: quick effect on/off (hardware toggle, state sent, held stems in stem mode)</description>
         <status>0x97</status>
         <midino>0x1C</midino>
         <options>
@@ -1198,7 +1198,7 @@
       <control>
         <group>[Channel1]</group>
         <key>VestaxVCI380.onFXSelectPush</key>
-        <description>Left FX SELECT push: load the first quick effect chain preset</description>
+        <description>Left FX SELECT push: load the first quick effect chain preset (held stems in stem mode)</description>
         <status>0x97</status>
         <midino>0x06</midino>
         <options>
@@ -1208,7 +1208,7 @@
       <control>
         <group>[Channel2]</group>
         <key>VestaxVCI380.onFXOnOff</key>
-        <description>Right FX ON/OFF switch: quick effect on/off (hardware toggle, state sent) (held stems in stem mode)</description>
+        <description>Right FX ON/OFF switch: quick effect on/off (hardware toggle, state sent, held stems in stem mode)</description>
         <status>0x98</status>
         <midino>0x1C</midino>
         <options>
@@ -1218,7 +1218,7 @@
       <control>
         <group>[Channel2]</group>
         <key>VestaxVCI380.onFXSelectPush</key>
-        <description>Right FX SELECT push: load the first quick effect chain preset</description>
+        <description>Right FX SELECT push: load the first quick effect chain preset (held stems in stem mode)</description>
         <status>0x98</status>
         <midino>0x06</midino>
         <options>
