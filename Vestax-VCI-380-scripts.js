@@ -61,6 +61,12 @@ VestaxVCI380.init = function(_id, _debugging) {
     // faders and knobs: we get their position with identity reply, and only activate soft takeover after that
     VestaxVCI380.createPots();
 
+    // headphone mix: the controller mixes cue and master itself with its CUE/MASTER knob,
+    // so the headphone output of Mixxx must be cue only (option, enabled by default)
+    if (engine.getSetting("headMixInController")) {
+        engine.setValue("[Master]", "headMix", -1);
+    }
+
     // check whether our Mixxx version supports stems
     // on 2.5, we detect the absence of softTakeoverWillIgnore which is a 2.6 function. This avoids probing the non-existent stem_count which would log a "non-existent control" warning
     if ("softTakeoverWillIgnore" in engine) {
@@ -138,7 +144,8 @@ VestaxVCI380.init = function(_id, _debugging) {
 //   switch on MIXER). 0x56 drives the Mixxx crossfader curve (onCrossfaderCurve)
 //   if the option cfCurveKnob is enabled.
 //   0x58 headphone CUE / MASTER mix: the hardware itself mixes the main output
-//   and the headphone (PFL / preview) output.
+//   and the headphone (PFL / preview) output; it sets the headphone mix of Mixxx
+//   if the headMixInController option is disabled (onHeadMix).
 // - CC 0x5B on 0xB7 / 0xB8: pad pressure (one value per deck); the pad notes
 //   also carry the velocity.
 // - MODE buttons are radio buttons handled by the hardware: changing mode sends
@@ -189,6 +196,7 @@ VestaxVCI380.createPots = function() {
     // state sent after the identity request, and onCrossfader makes soft takeover ignore the
     // first SHIFT + crossfader value after the crossfader moved (the fader position is the
     // crossfader one), so that value is only used to learn the position
+    VestaxVCI380.headMix = new components.Pot({group: "[Master]", inKey: "headMix", softTakeover: false});
 };
 
 // whether the softTakeover has been enabled, from identity reply or fallback timer
@@ -200,7 +208,7 @@ VestaxVCI380.enableSoftTakeover = function() {
         return;
     }
     VestaxVCI380.softTakeoverEnabled = true;
-    const pots = [VestaxVCI380.crossfader, VestaxVCI380.balance];
+    const pots = [VestaxVCI380.crossfader, VestaxVCI380.balance, VestaxVCI380.headMix];
     for (let deck = 1; deck <= 2; deck++) {
         const d = VestaxVCI380[`deck${deck}`];
         pots.push(d.volume, d.pregain, d.rate, d.depth, ...d.eq);
@@ -401,6 +409,16 @@ VestaxVCI380.onCrossfader = function(channel, control, value, status) {
         engine.softTakeoverIgnoreNextValue("[Master]", "balance");
         VestaxVCI380.crossfader.input(channel, control, value, status);
     }
+};
+
+// CUE/MASTER knob: mixed by the controller itself in the headphones (headMixInController
+// option, recommended). Without the option, it sets the headphone mix of Mixxx,
+// for headphones plugged into another sound card.
+VestaxVCI380.onHeadMix = function(channel, control, value, status) {
+    if (engine.getSetting("headMixInController")) {
+        return;
+    }
+    VestaxVCI380.headMix.input(channel, control, value, status);
 };
 
 ////
