@@ -274,7 +274,7 @@ VestaxVCI380.getDeckFromGroup = function(group) {
 // Play button
 // with soft start and brake
 ////
-VestaxVCI380.onPlay = function(channel, control, value, status, group) {
+VestaxVCI380.onPlay = function(channel, _control, value, _status, group) {
     if (value === 0x7F) {
         const deck = VestaxVCI380.getDeck(channel);
         if (VestaxVCI380.shiftStatus) {
@@ -295,7 +295,7 @@ VestaxVCI380.onPlay = function(channel, control, value, status, group) {
 
 VestaxVCI380.isScratching=[false, false];
 // The button that enables/disables scratching
-VestaxVCI380.wheelTouch = function(channel, control, value, _status) {
+VestaxVCI380.wheelTouch = function(channel, _control, value, _status) {
     if (value === 0x7F) {
 
         // select range according to shift status (shift=fast moving)
@@ -316,7 +316,7 @@ VestaxVCI380.wheelTouch = function(channel, control, value, _status) {
 };
 // The wheel that actually controls the scratching
 VestaxVCI380.tickCounter = [0, 0];
-VestaxVCI380.wheelTurn = function(channel, control, value, _status) {
+VestaxVCI380.wheelTurn = function(channel, _control, value, _status) {
     const deck=VestaxVCI380.getDeck(channel);
     if (!VestaxVCI380.jogScrollStatus) {
         if (VestaxVCI380.isScratching[deck-1]) { // scratching
@@ -349,7 +349,7 @@ VestaxVCI380.wheelTurn = function(channel, control, value, _status) {
 ////
 // SHIFT buttons
 VestaxVCI380.shiftStatus=false;
-VestaxVCI380.onShift = function(channel, control, value, _status) {
+VestaxVCI380.onShift = function(channel, _control, value, _status) {
     // left and right shift have different channels, but I consider them to be equivalent
     VestaxVCI380.shiftStatus=(value===0x7F);
     VestaxVCI380.setLED(1, VestaxVCI380.LED.SHIFT, VestaxVCI380.shiftStatus);
@@ -358,7 +358,7 @@ VestaxVCI380.onShift = function(channel, control, value, _status) {
 
 // Jog Scroll button
 VestaxVCI380.jogScrollStatus=false;
-VestaxVCI380.onJogScroll = function(channel, control, value, _status) {
+VestaxVCI380.onJogScroll = function(_channel, _control, value, _status) {
     VestaxVCI380.jogScrollStatus=(value===0x7F);
     VestaxVCI380.setLED(1, VestaxVCI380.LED.JOGSCROLL, VestaxVCI380.jogScrollStatus);
 };
@@ -367,7 +367,7 @@ VestaxVCI380.onJogScroll = function(channel, control, value, _status) {
 ////
 // KNOBS
 ////
-VestaxVCI380.onSelectTrackKnob = function(channel, control, value, _status) {
+VestaxVCI380.onSelectTrackKnob = function(_channel, _control, value, _status) {
     switch (value) {
     case 0x7F:
         engine.setValue("[Library]", "MoveVertical", -1);
@@ -407,7 +407,7 @@ VestaxVCI380.onEQ = function(channel, control, value, status) {
 // of its own decks, so when the cfCurveKnob option is enabled,
 // the knob drives the curve set in Preferences > Mixer.
 // Same formula as the preferences slider (dlgprefmixer: linearToOneByX).
-VestaxVCI380.onCrossfaderCurve = function(channel, control, value, _status) {
+VestaxVCI380.onCrossfaderCurve = function(_channel, _control, value, _status) {
     if (!engine.getSetting("cfCurveKnob"))  {
         return; // default behaviour: keep the curve of the preferences
     }
@@ -461,7 +461,7 @@ VestaxVCI380.onPCMixer = function(channel, _control, value, status) {
 ////
 
 // VINYL button used as slip mode
-VestaxVCI380.onVinyl = function(channel, control, value, _status) {
+VestaxVCI380.onVinyl = function(channel, _control, value, _status) {
     if  (value===0x7F) {
         script.toggleControl(`[Channel${VestaxVCI380.getDeck(channel)}]`, "slip_enabled");
     }
@@ -469,7 +469,7 @@ VestaxVCI380.onVinyl = function(channel, control, value, _status) {
 
 // CUE A/B buttons. Must be used with jog scroll, otherwise they act as headphone cue toggle
 // NOTE: the headphone cue function is handled by the controller in hardware
-VestaxVCI380.onLoad = function(channel, control, value, _status) {
+VestaxVCI380.onLoad = function(channel, _control, value, _status) {
     if (VestaxVCI380.jogScrollStatus && value===0x7F) { // value 00 when button released would trigger deck clone (double click)
         engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}]`, "LoadSelectedTrack", 1);
     }
@@ -477,18 +477,18 @@ VestaxVCI380.onLoad = function(channel, control, value, _status) {
 
 // Headphone cue buttons
 // NOTE: the headphone cue function is handled by the controller in hardware
-VestaxVCI380.onHeadCue = function(channel, control, value, _status) {
+VestaxVCI380.onHeadCue = function(channel, _control, value, _status) {
     engine.setValue(`[Channel${VestaxVCI380.getDeck(channel)}]`, "pfl", value === 0x7F ? 1 : 0);
 };
 
 ////
 // STRIPS
-// In mode 4 (Stems), if a stem is selected, the strip will control its volume
+// In mode 4 (Stems), while some stems are held (upper pads), the strip will control its volume
 // In other modes, both strips control the needle drop on the preview deck.
 //                 or with SHIFT, they do needle drop on the corresponding deck
 ////
 
-VestaxVCI380.onStrip = function(channel, control, value, _status) {
+VestaxVCI380.onStrip = function(channel, _control, value, _status) {
     const deck=VestaxVCI380.getDeck(channel);
     if (VestaxVCI380.isStemSelected(deck)) {
         for (const stem of VestaxVCI380.heldStems[deck-1]) {
@@ -654,7 +654,7 @@ VestaxVCI380.onPadTap = function(channel, control, value, _status) {
 
 
 // PADFX button, select and push
-VestaxVCI380.onPadFXSelect = function(channel, control, value, _status) {
+VestaxVCI380.onPadFXSelect = function(channel, _control, value, _status) {
     const deck = VestaxVCI380.getDeck(channel);
     switch (deck) {
     case 1:
@@ -829,7 +829,7 @@ VestaxVCI380.clearConnectionsForMode = function(deck, _mode) {
     }
 };
 
-VestaxVCI380.onStemChange = function(value, group, _control) {
+VestaxVCI380.onStemChange = function(_value, group, _control) {
     const deck=VestaxVCI380.getDeckFromGroup(group);
     VestaxVCI380.refreshPadsStem(deck);
 };
@@ -868,7 +868,7 @@ VestaxVCI380.toggleStemSolo = function(deck, soloStem) {
     }
 };
 
-VestaxVCI380.onHotcueUpdated = function(value, group, _control) {
+VestaxVCI380.onHotcueUpdated = function(_value, group, _control) {
     const deck=VestaxVCI380.getDeckFromGroup(group);
     if (VestaxVCI380.padMode[deck-1]===1) {
         VestaxVCI380.setPadColorHotcuesDeck(deck);
@@ -931,7 +931,7 @@ VestaxVCI380.onRateChange = function(value, group, _control) {
 };
 
 // for mode 1, refresh display while a new track is loaded/unloaded
-VestaxVCI380.onTrackLoaded = function(value, group, _control) {
+VestaxVCI380.onTrackLoaded = function(_value, group, _control) {
     const deck=VestaxVCI380.getDeckFromGroup(group);
     if (engine.getValue(group, "track_loaded")===0) { // track ejected -> reset display
         VestaxVCI380.setWheelLED(deck, 0);
@@ -953,7 +953,7 @@ VestaxVCI380.onTrackLoaded = function(value, group, _control) {
 };
 
 // for mode 3, refresh colors when a loop is enabled or disabled
-VestaxVCI380.onLoopEnabled = function(value, group, _control) {
+VestaxVCI380.onLoopEnabled = function(_value, group, _control) {
     const deck=VestaxVCI380.getDeckFromGroup(group);
     if (VestaxVCI380.padMode[deck-1]===3) {
         VestaxVCI380.setPadColorLoopMode(deck);
@@ -964,7 +964,7 @@ VestaxVCI380.onLoopEnabled = function(value, group, _control) {
 // Managing effects
 ////
 
-// true while a stem is selected (upper pad held in stems mode)
+// true while at least one stem is selected (upper pad held in stems mode)
 VestaxVCI380.isStemSelected = function(deck) {
     return VestaxVCI380.hasStems && VestaxVCI380.padMode[deck-1]===4 &&
         VestaxVCI380.heldStems[deck-1].length > 0;
@@ -997,7 +997,7 @@ VestaxVCI380.onFXDepth = function(channel, control, value, status) {
     depth.input(channel, control, value, status);
 };
 
-VestaxVCI380.onFXSelect = function(channel, control, value, _status) {
+VestaxVCI380.onFXSelect = function(channel, _control, value, _status) {
     const groups=VestaxVCI380.getFXGroups(channel);
     const direction = (value === 0x7F) ? 1 : -1;
     if (groups.length === 1) {
@@ -1021,7 +1021,7 @@ VestaxVCI380.onFXSelectPush = function(channel, _control, value, _status) {
     }
 };
 
-VestaxVCI380.onFXOnOff = function(channel, control, value, _status) {
+VestaxVCI380.onFXOnOff = function(channel, i_control, value, _status) {
     for (const group of VestaxVCI380.getFXGroups(channel)) {
         engine.setValue(group, "enabled", (value === 0x7F) ? 1 : 0);
     }
