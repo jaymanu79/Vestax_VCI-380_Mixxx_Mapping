@@ -196,6 +196,8 @@ VestaxVCI380.createPots = function() {
     // state sent after the identity request, and onCrossfader makes soft takeover ignore the
     // first SHIFT + crossfader value after the crossfader moved (the fader position is the
     // crossfader one), so that value is only used to learn the position
+
+    // CUE/MASTER knob, only used when the headMixInController option is disabled
     VestaxVCI380.headMix = new components.Pot({group: "[Master]", inKey: "headMix", softTakeover: false});
 };
 
@@ -208,7 +210,10 @@ VestaxVCI380.enableSoftTakeover = function() {
         return;
     }
     VestaxVCI380.softTakeoverEnabled = true;
-    const pots = [VestaxVCI380.crossfader, VestaxVCI380.balance, VestaxVCI380.headMix];
+    const pots = [VestaxVCI380.crossfader, VestaxVCI380.balance];
+    if (!engine.getSetting("headMixInController")) {
+        pots.push(VestaxVCI380.headMix); // CUE/MASTER only drives Mixxx without this option
+    }
     for (let deck = 1; deck <= 2; deck++) {
         const d = VestaxVCI380[`deck${deck}`];
         pots.push(d.volume, d.pregain, d.rate, d.depth, ...d.eq);
