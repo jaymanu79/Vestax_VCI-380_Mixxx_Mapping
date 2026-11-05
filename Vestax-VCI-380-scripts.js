@@ -100,6 +100,9 @@ VestaxVCI380.init = function(_id, _debugging) {
     // align Mixxx with the current position of the faders, knobs and switches
     VestaxVCI380.syncWithController();
 
+    // fallback in case we never receive the identity reply
+    engine.beginTimer(2000, VestaxVCI380.enableSoftTakeover, true);
+
     // splash screen, once the controller has sent its state (pad mode included)
     engine.beginTimer(500, function() {
         for (let deck = 1; deck <= 2; deck++) {
@@ -182,7 +185,12 @@ VestaxVCI380.createPots = function() {
 };
 
 // soft takeover on every fader and knob, once Mixxx has their real position
+VestaxVCI380.softTakeOverEnabled = false;
 VestaxVCI380.enableSoftTakeover = function() {
+    if (VestaxVCI380.softTakeOverEnabled) {
+        return;
+    }
+    VestaxVCI380.softTakeOverEnabled = true;
     const pots = [VestaxVCI380.crossfader, VestaxVCI380.balance];
     for (let deck = 1; deck <= 2; deck++) {
         const d = VestaxVCI380[`deck${deck}`];
