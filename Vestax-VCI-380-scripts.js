@@ -349,7 +349,7 @@ VestaxVCI380.wheelTurn = function(channel, _control, value, _status) {
 ////
 // SHIFT buttons
 VestaxVCI380.shiftStatus=false;
-VestaxVCI380.onShift = function(channel, _control, value, _status) {
+VestaxVCI380.onShift = function(_channel, _control, value, _status) {
     // left and right shift have different channels, but I consider them to be equivalent
     VestaxVCI380.shiftStatus=(value===0x7F);
     VestaxVCI380.setLED(1, VestaxVCI380.LED.SHIFT, VestaxVCI380.shiftStatus);
@@ -483,7 +483,7 @@ VestaxVCI380.onHeadCue = function(channel, _control, value, _status) {
 
 ////
 // STRIPS
-// In mode 4 (Stems), while some stems are held (upper pads), the strip will control its volume
+// In mode 4 (Stems), while some stems are held (upper pads), the strip will control their volume
 // In other modes, both strips control the needle drop on the preview deck.
 //                 or with SHIFT, they do needle drop on the corresponding deck
 ////
@@ -1021,7 +1021,7 @@ VestaxVCI380.onFXSelectPush = function(channel, _control, value, _status) {
     }
 };
 
-VestaxVCI380.onFXOnOff = function(channel, i_control, value, _status) {
+VestaxVCI380.onFXOnOff = function(channel, _control, value, _status) {
     for (const group of VestaxVCI380.getFXGroups(channel)) {
         engine.setValue(group, "enabled", (value === 0x7F) ? 1 : 0);
     }
