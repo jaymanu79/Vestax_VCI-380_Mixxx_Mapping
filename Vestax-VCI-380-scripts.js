@@ -184,13 +184,15 @@ VestaxVCI380.createPots = function() {
     // we map balance to shift+CF which is not standard, so not received by the identity request
 };
 
+// whether the softTakeover has been enabled, from identity reply or fallback timer
+VestaxVCI380.softTakeoverEnabled = false;
+
 // soft takeover on every fader and knob, once Mixxx has their real position
-VestaxVCI380.softTakeOverEnabled = false;
 VestaxVCI380.enableSoftTakeover = function() {
-    if (VestaxVCI380.softTakeOverEnabled) {
+    if (VestaxVCI380.softTakeoverEnabled) {
         return;
     }
-    VestaxVCI380.softTakeOverEnabled = true;
+    VestaxVCI380.softTakeoverEnabled = true;
     const pots = [VestaxVCI380.crossfader, VestaxVCI380.balance];
     for (let deck = 1; deck <= 2; deck++) {
         const d = VestaxVCI380[`deck${deck}`];
