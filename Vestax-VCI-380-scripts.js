@@ -63,10 +63,13 @@ VestaxVCI380.init = function(_id, _debugging) {
 
     // check whether our Mixxx version supports stems
     // warning once ("non-existent" stem_count) and makeConnection returns undefined
-    const stemConnection = engine.makeConnection("[Channel1]", "stem_count", function() {});
-    VestaxVCI380.hasStems = stemConnection !== undefined;
-    if (VestaxVCI380.hasStems) {
-        stemConnection.disconnect();
+    // on 2.5, we detect the absence of SoftTakeoverWillIgnore which is a 2.6 control. This avoids probing the unexistent stem_count which would log a "non-existent control" warning
+    if ("softTakeoverWillIgnore" in engine) {
+        const stemConnection = engine.makeConnection("[Channel1]", "stem_count", function() {});
+        VestaxVCI380.hasStems = stemConnection !== undefined;
+        if (VestaxVCI380.hasStems) {
+            stemConnection.disconnect();
+        }
     }
 
     // events connection
