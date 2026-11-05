@@ -288,7 +288,7 @@
       <control>
         <group>[Channel1]</group>
         <key>VestaxVCI380.onFXSelect</key>
-        <description>Left FX SELECT encoder: quick effect chain preset</description>
+        <description>Left FX SELECT encoder: quick effect chain preset (on held stems in stem mode)</description>
         <status>0xB7</status>
         <midino>0x06</midino>
         <options>
@@ -308,7 +308,7 @@
       <control>
         <group>[Channel2]</group>
         <key>VestaxVCI380.onFXSelect</key>
-        <description>Right FX SELECT encoder: quick effect chain preset</description>
+        <description>Right FX SELECT encoder: quick effect chain preset (on held stems in stem mode)</description>
         <status>0xB8</status>
         <midino>0x06</midino>
         <options>
@@ -968,7 +968,7 @@
       <control>
         <group>[Channel1]</group>
         <key>VestaxVCI380.onStrip</key>
-        <description>Left touch strip: needle drop (preview deck, SHIFT: deck), stem volume in stems mode</description>
+        <description>Left touch strip: needle drop (preview deck, SHIFT: deck), volume of the held stems in stems mode</description>
         <status>0xB7</status>
         <midino>0x3B</midino>
         <options>
@@ -988,7 +988,7 @@
       <control>
         <group>[Channel2]</group>
         <key>VestaxVCI380.onStrip</key>
-        <description>Right touch strip: needle drop (preview deck, SHIFT: deck), stem volume in stems mode</description>
+        <description>Right touch strip: needle drop (preview deck, SHIFT: deck), volume of the held stems in stems mode</description>
         <status>0xB8</status>
         <midino>0x3B</midino>
         <options>
@@ -998,7 +998,7 @@
       <control>
         <group>[Channel1]</group>
         <key>VestaxVCI380.onStrip</key>
-        <description>Left touch strip (sampler mode): needle drop (preview deck, SHIFT: deck), stem volume in stems mode</description>
+        <description>Left touch strip (sampler mode): needle drop (preview deck, SHIFT: deck), volume of the held stems in stems mode</description>
         <status>0xB7</status>
         <midino>0x3C</midino>
         <options>
@@ -1008,7 +1008,7 @@
       <control>
         <group>[Channel2]</group>
         <key>VestaxVCI380.onStrip</key>
-        <description>Right touch strip (sampler mode): needle drop (preview deck, SHIFT: deck), stem volume in stems mode</description>
+        <description>Right touch strip (sampler mode): needle drop (preview deck, SHIFT: deck), volume of the held stems in stems mode</description>
         <status>0xB8</status>
         <midino>0x3C</midino>
         <options>
@@ -1048,7 +1048,7 @@
       <control>
         <group>[Channel1]</group>
         <key>VestaxVCI380.onStrip</key>
-        <description>Left touch strip: needle drop (preview deck, SHIFT: deck), stem volume in stems mode</description>
+        <description>Left touch strip: needle drop (preview deck, SHIFT: deck), volume of the held stems in stems mode</description>
         <status>0xB7</status>
         <midino>0x3A</midino>
         <options>
@@ -1058,7 +1058,7 @@
       <control>
         <group>[Channel2]</group>
         <key>VestaxVCI380.onStrip</key>
-        <description>Right touch strip: needle drop (preview deck, SHIFT: deck), stem volume in stems mode</description>
+        <description>Right touch strip: needle drop (preview deck, SHIFT: deck), volume of the held stems in stems mode</description>
         <status>0xB8</status>
         <midino>0x3A</midino>
         <options>
@@ -1108,7 +1108,7 @@
       <control>
         <group>[Channel1]</group>
         <key>VestaxVCI380.onStrip</key>
-        <description>Left touch strip: needle drop (preview deck, SHIFT: deck), stem volume in stems mode</description>
+        <description>Left touch strip: needle drop (preview deck, SHIFT: deck), volume of the held stems in stems mode</description>
         <status>0xB7</status>
         <midino>0x39</midino>
         <options>
@@ -1118,7 +1118,7 @@
       <control>
         <group>[Channel2]</group>
         <key>VestaxVCI380.onStrip</key>
-        <description>Right touch strip: needle drop (preview deck, SHIFT: deck), stem volume in stems mode</description>
+        <description>Right touch strip: needle drop (preview deck, SHIFT: deck), volume of the held stems in stems mode</description>
         <status>0xB8</status>
         <midino>0x39</midino>
         <options>
@@ -1158,7 +1158,7 @@
       <control>
         <group>[Channel1]</group>
         <key>VestaxVCI380.onStrip</key>
-        <description>Left touch strip: needle drop (preview deck, SHIFT: deck), stem volume in stems mode</description>
+        <description>Left touch strip: needle drop (preview deck, SHIFT: deck), volume of the held stems in stems mode</description>
         <status>0xB7</status>
         <midino>0x38</midino>
         <options>
@@ -1178,7 +1178,7 @@
       <control>
         <group>[Channel2]</group>
         <key>VestaxVCI380.onStrip</key>
-        <description>Right touch strip: needle drop (preview deck, SHIFT: deck), stem volume in stems mode</description>
+        <description>Right touch strip: needle drop (preview deck, SHIFT: deck), volume of the held stems in stems mode</description>
         <status>0xB8</status>
         <midino>0x38</midino>
         <options>
@@ -1268,7 +1268,7 @@
       <control>
         <group>[Channel1]</group>
         <key>VestaxVCI380.onFXDepth</key>
-        <description>Left DEPTH knob: quick effect super knob (selected stem in stems mode)</description>
+        <description>Left DEPTH knob: quick effect super knob (held stems in stems mode)</description>
         <status>0xB7</status>
         <midino>0x0A</midino>
         <options>
@@ -1278,7 +1278,7 @@
       <control>
         <group>[Channel2]</group>
         <key>VestaxVCI380.onFXDepth</key>
-        <description>Right DEPTH knob: quick effect super knob (selected stem in stems mode)</description>
+        <description>Right DEPTH knob: quick effect super knob (held stems in stems mode)</description>
         <status>0xB8</status>
         <midino>0x0A</midino>
         <options>
