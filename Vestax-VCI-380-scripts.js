@@ -143,6 +143,8 @@ VestaxVCI380.init = function(_id, _debugging) {
 //   the faders; they act on the external inputs mixed by the hardware (channel
 //   switch on MIXER). 0x56 drives the Mixxx crossfader curve (onCrossfaderCurve)
 //   if the option cfCurveKnob is enabled.
+//   0x57 is not mapped: Mixxx has no setting for the curve of its channel faders
+//   (only the crossfader curve can be changed).
 //   0x58 headphone CUE / MASTER mix: the hardware itself mixes the main output
 //   and the headphone (PFL / preview) output; it sets the headphone mix of Mixxx
 //   if the headMixInController option is disabled (onHeadMix).
