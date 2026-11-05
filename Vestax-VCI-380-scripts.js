@@ -56,7 +56,7 @@ VestaxVCI380.init = function(_id, _debugging) {
 
     // all lights ON
     VestaxVCI380.setPadColorAll(VestaxVCI380.padColor.WHITE);
-    VestaxVCI380.setAllLEDs(true);
+    // VestaxVCI380.setAllLEDs(true); // Removed that part because it caused a buffer overflow to the controllers when the mapping is reloaded several times at once. It was just a useless visual effect.
 
     // faders and knobs: we get their position with identity reply, and only activate soft takeover after that
     VestaxVCI380.createPots();
