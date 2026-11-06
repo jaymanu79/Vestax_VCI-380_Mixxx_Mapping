@@ -879,7 +879,9 @@ VestaxVCI380.onHotcueUpdated = function(_value, group, _control) {
     }
 };
 
-VestaxVCI380.onSampler = function(value, group, _control) {
+// sampler pads: empty = dim white; loaded = color of the sampler track (green if it has none);
+// playing = yellow, or white if the track is already yellow
+VestaxVCI380.onSampler = function(_value, group, _control) {
     if (group.startsWith("[Sampler")) {
         const button=VestaxVCI380.samplerToButton[group.match(/\d+/)[0]];
         let color=VestaxVCI380.colorSamplerEmpty;
