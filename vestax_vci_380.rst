@@ -149,6 +149,7 @@ You can turn the wheels with or without touching the sensitive metal part.
 Make sure that the sensitivity is correctly set with :hwlabel:`TOUCH SENSOR ADJ` knobs on the front panel: the wheels must turn red when touched, and only then. If not, the tracks will refuse to play if Mixxx thinks that a platter is touched!
 
 The LED rings are simulating a vinyl record spin.
+The wheels and their LED rings follow the turntable speed of the deck, set in :menuselection:`Preferences --> Vinyl Control` (33 or 45 RPM), like the spinning discs on screen: one turn of the wheel is one turn of the disc on screen.
 
 ====================================================== =================================
 Action                                                 Effect
@@ -250,7 +251,7 @@ The pads work in different modes, according to the selection buttons on the top 
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 8 hot cues available, one per pad. The pads will light up when their hotcue is set.
 The colors of the lights will approximate the colors defined for the hot cues.
-The pads without hotcue are dimmed, in the color of the loaded track (blue if the track has no color).
+The pads without hotcue are dimmed, in the color of the loaded track (blue if the track has no color), or in a fixed color chosen in the `Mapping options`_.
 
 - push a lighted pad to play the hotcue
 - push a blank pad to set a new hotcue to the current position.
@@ -260,7 +261,7 @@ The pads without hotcue are dimmed, in the color of the loaded track (blue if th
 :hwlabel:`SLICER` mode: BEAT GRID tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The 8 pads will illuminate in sequence following the beat grid. To reset the sequence to beat 1, push the :hwlabel:`SLICER` button again.
-The other pads are dimmed, in the color of the loaded track (cyan if the track has no color).
+The other pads are dimmed, in the color of the loaded track (cyan if the track has no color), or in a fixed color chosen in the `Mapping options`_.
 
 - Push a button of higher row: BPM tap. Tap it in rhythm to adjust the calculated BPM of the track
 - Push a button of lower row: align beatgrid. Tap it to align the beatgrid bars to the current position.
@@ -313,6 +314,8 @@ color of the track (green if none)  a track is loaded play                 eject
 yellow (white for a yellow track)   playing           restart              stop
 =================================== ================= ==================== =============================
 
+The color of loaded samplers can also be a fixed color chosen in the `Mapping options`_.
+
 Switching to sampler mode will automatically activate the samplers display on screen.
 
 Mapping options
@@ -334,6 +337,11 @@ The options of the mapping are in :menuselection:`Preferences --> Controllers`, 
    With :guilabel:`Auxiliary inputs`, the :hwlabel:`PC` position enables :guilabel:`Auxiliary 1` (left switch) or :guilabel:`Auxiliary 2` (right switch) in Mixxx, and the :hwlabel:`MIXER` position disables it, so the source isn't heard twice.
    With :guilabel:`Vinyl control`, the :hwlabel:`PC` position enables vinyl control on deck 1 (left switch) or deck 2 (right switch), and the :hwlabel:`MIXER` position disables it: with one turntable, switch between a timecode record (:hwlabel:`PC`) and a regular record (:hwlabel:`MIXER`).
    The inputs must be set up in :menuselection:`Preferences --> Sound Hardware --> Input` (see `Integrated mixer and external inputs`_). The position of the switches is also applied when the mapping starts.
+
+:guilabel:`Pad color of unset hotcues`, :guilabel:`Pad color of the beat grid`, :guilabel:`Pad color of loaded samplers` (:guilabel:`Follow track color` by default)
+   The background color of the pads: the pads without hotcue in :hwlabel:`HOT CUE` mode, the pads of the beats that are not playing in :hwlabel:`SLICER` mode, and the pads of loaded samplers in :hwlabel:`SAMPLER` mode.
+   With :guilabel:`Follow track color`, they take the color of the track (blue, cyan or green if the track has no color). Otherwise they take the chosen color: blue, green, cyan, red, magenta, yellow or white.
+   The first two are shown dimmed on the pads.
 
 Changing an option reloads the mapping.
 
