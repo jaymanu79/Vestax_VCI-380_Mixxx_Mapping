@@ -40,6 +40,45 @@
         The inputs must be set up in Preferences > Sound Hardware > Input.
       </description>
     </option>
+    <option variable="padColorHotcueUnset" type="enum" label="Pad color of unset hotcues">
+      <value label="Follow track color" default="true">track</value>
+      <value label="Blue" color="#BFBFFF">BLUE</value>
+      <value label="Green" color="#BFFFBF">GREEN</value>
+      <value label="Cyan" color="#BFFFFF">CYAN</value>
+      <value label="Red" color="#FFBFBF">RED</value>
+      <value label="Magenta" color="#FFBFFF">MAGENTA</value>
+      <value label="Yellow" color="#FFFFBF">YELLOW</value>
+      <value label="White" color="#FFFFFF">WHITE</value>
+      <description>
+        Color of the hotcue pads with no hotcue (dimmed). Follow track color: the color of the track loaded on the deck, or blue if the track has no color.
+      </description>
+    </option>
+    <option variable="padColorBeatInactive" type="enum" label="Pad color of the beat grid">
+      <value label="Follow track color" default="true">track</value>
+      <value label="Blue" color="#BFBFFF">BLUE</value>
+      <value label="Green" color="#BFFFBF">GREEN</value>
+      <value label="Cyan" color="#BFFFFF">CYAN</value>
+      <value label="Red" color="#FFBFBF">RED</value>
+      <value label="Magenta" color="#FFBFFF">MAGENTA</value>
+      <value label="Yellow" color="#FFFFBF">YELLOW</value>
+      <value label="White" color="#FFFFFF">WHITE</value>
+      <description>
+        Color of the pads of the beats that are not playing (dimmed). Follow track color: the color of the track loaded on the deck, or cyan if the track has no color.
+      </description>
+    </option>
+    <option variable="padColorSamplerLoaded" type="enum" label="Pad color of loaded samplers">
+      <value label="Follow track color" default="true">track</value>
+      <value label="Blue" color="#0000FF">BLUE</value>
+      <value label="Green" color="#00FF00">GREEN</value>
+      <value label="Cyan" color="#00FFFF">CYAN</value>
+      <value label="Red" color="#FF0000">RED</value>
+      <value label="Magenta" color="#FF00FF">MAGENTA</value>
+      <value label="Yellow" color="#FFFF00">YELLOW</value>
+      <value label="White" color="#FFFFFF">WHITE</value>
+      <description>
+        Color of the pads of loaded samplers. Follow track color: the color of the sampler track, or green if the track has no color.
+      </description>
+    </option>
   </settings>
   <controller id="VestaxVCI380">
     <scriptfiles>
