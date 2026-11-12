@@ -57,7 +57,11 @@ to them.
 Outputs found later with `amidi` (one message at a time, Mixxx closed):
 
 - CC `0x03` on `0xB7` / `0xB8`: position of the jog wheel LED (`0x00`-`0x7F`). No
-  message found to switch it off (CCs `0x00`-`0x7F` on `0xB7` tested).
+  message found to switch it off (CCs `0x00`-`0x7F` on `0xB7` tested). The ring
+  has 64 LEDs for one turn of values `0x00`-`0x7F`: only even values move it
+  (`0x7E` is followed by `0x00`), so odd values don't need to be sent.
+- Jog wheel resolution: 3600 ticks per turn (CC `0x45` on `0xB7`, relative values
+  around `0x40`), measured over 20 turns with `amidi`, twice.
 - CC `0x04` on `0xB7` / `0xB8`: lights the left / right column of the level meter
   for a moment only. The controller overwrites it with its own measurement a few
   ms later, also when CUE A / CUE B is on; sent every 20 ms, the column flickers.
