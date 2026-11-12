@@ -27,7 +27,6 @@
         Recommended when the headphones are plugged into the controller and the Headphones output of Mixxx is the controller (channels 3 - 4).
         The CUE/MASTER knob of the controller mixes PFL and Main in the headphones, and the Headphone Mix knob of Mixxx is set to full PFL when the mapping starts.
         Disable if the headphones are plugged into another sound card: the controller CUE/MASTER knob then sets the Headphone Mix knob of Mixxx, with soft takeover.
-        The position of the switches is also applied when the mapping starts.
       </description>
     </option>
     <option variable="pcMixerSwitch" type="enum" label="PC / MIXER switches also control Mixxx inputs">
@@ -36,7 +35,8 @@
       <value label="Vinyl control">vinyl</value>
       <description>
         With Auxiliary inputs: the PC position of the left switch enables Auxiliary 1 in Mixxx, and the right switch enables Auxiliary 2. The MIXER position disables it, so the source isn't heard twice.
-        With Vinyl control: the PC position enables the left switch enables vinyl control on deck 1, and the right switch on deck 2. The MIXER position disables it.
+        With Vinyl control: the PC position of the left switch enables vinyl control on deck 1, and the right switch on deck 2. The MIXER position disables it.
+        The position of the switches is also applied when the mapping starts.
         The inputs must be set up in Preferences > Sound Hardware > Input.
       </description>
     </option>

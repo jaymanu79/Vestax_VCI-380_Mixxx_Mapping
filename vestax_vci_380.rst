@@ -327,12 +327,12 @@ The options of the mapping are in :menuselection:`Preferences --> Controllers`, 
 
 :guilabel:`Headphone mix by the controller (recommended)` (on by default)
    For headphones plugged into the controller, with the :guilabel:`Headphones` output of Mixxx on the controller (channels 3 - 4).
-   The :hwlabel:`CUE/MASTER` knob mixes PFL and Main in the headphones, in the controller, and :guilabel:`Headphone Mix` knob is set to full PFL when the mapping starts.
+   The :hwlabel:`CUE/MASTER` knob mixes PFL and Main in the headphones, in the controller, and the :guilabel:`Headphone Mix` knob is set to full PFL when the mapping starts.
    Disable it if the headphones are plugged into another sound card: :hwlabel:`CUE/MASTER` then sets the :guilabel:`Headphone Mix` knob, with soft takeover.
 
 :guilabel:`PC / MIXER switches also control Mixxx inputs` (:guilabel:`No` by default)
    With :guilabel:`Auxiliary inputs`, the :hwlabel:`PC` position enables :guilabel:`Auxiliary 1` (left switch) or :guilabel:`Auxiliary 2` (right switch) in Mixxx, and the :hwlabel:`MIXER` position disables it, so the source isn't heard twice.
-   With :guilabel:`Vinyl control`, the :hwlabel:`PC` position enables vinyl control on deck 1 (left channel) or deck 2 (right channel), and the :hwlabel:`MIXER` position disables it: with one turntable, switch between a timecode record (:hwlabel:`PC`) and a regular record (:hwlabel:`MIXER`).
+   With :guilabel:`Vinyl control`, the :hwlabel:`PC` position enables vinyl control on deck 1 (left switch) or deck 2 (right switch), and the :hwlabel:`MIXER` position disables it: with one turntable, switch between a timecode record (:hwlabel:`PC`) and a regular record (:hwlabel:`MIXER`).
    The inputs must be set up in :menuselection:`Preferences --> Sound Hardware --> Input` (see `Integrated mixer and external inputs`_). The position of the switches is also applied when the mapping starts.
 
 Changing an option reloads the mapping.
