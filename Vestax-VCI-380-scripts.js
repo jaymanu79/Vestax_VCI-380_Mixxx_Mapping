@@ -314,13 +314,6 @@ VestaxVCI380.isScratching=[false, false];
 VestaxVCI380.rpm=[33+1/3, 33+1/3];
 VestaxVCI380.scratchTpr = [VestaxVCI380.JOG_TICKS_PER_TURN, VestaxVCI380.JOG_TICKS_PER_TURN];
 
-// Turntable speed set for the deck in Preferences > Vinyl Control (33.33 or 45 RPM),
-// also used by the spinning disc of the skin. 33 1/3 if Mixxx has no vinyl control.
-VestaxVCI380.vinylRPM = function(deck) {
-    const rpm = engine.getValue(`[Channel${deck}]`, "vinylcontrol_speed_type");
-    return (rpm > 0) ? rpm : 33+1/3;
-};
-
 VestaxVCI380.startScratch = function(deck) {
     const alpha = 1.0/8;
     const beta = alpha/32;
@@ -1271,7 +1264,7 @@ VestaxVCI380.setPadColorSplash = function(deck) {
 VestaxVCI380.updatePlayposition = function(value, group, _control) {
     const deck=VestaxVCI380.getDeckFromGroup(group);
     const duration=engine.getValue(group, "duration");
-    const tickPerSecond=128 * VestaxVCI380.rpm[deck-1] / 60; // 128 LED positions
+    const tickPerSecond=128 * VestaxVCI380.rpm[deck-1] / 60; // 128 VALUES per LED turn, 64 LEDs
     const elapsedticks=duration*value*tickPerSecond;
     VestaxVCI380.setWheelLED(deck, Math.floor(elapsedticks%128) & 0x7E); // the LED only changes on even values
 };
