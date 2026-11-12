@@ -94,6 +94,20 @@ VestaxVCI380.init = function(_id, _debugging) {
     VestaxVCI380.connections.push(engine.makeConnection("[Channel1]", "slip_enabled", VestaxVCI380.refreshLEDs));
     VestaxVCI380.connections.push(engine.makeConnection("[Channel2]", "slip_enabled", VestaxVCI380.refreshLEDs));
 
+    // turntable speed of each deck (Preferences > Vinyl Control): used for scratching and the jog LED
+    for (let deck = 1; deck <= 2; deck++) {
+        const connection = engine.makeConnection(`[Channel${deck}]`, "vinylcontrol_speed_type", function(value) {
+            VestaxVCI380.rpm[deck-1] = (value > 0) ? value : 33+1/3;
+            if (VestaxVCI380.isScratching[deck-1]) {
+                VestaxVCI380.startScratch(deck); // speed changed while scratching
+            }
+        });
+        if (connection !== undefined) { // undefined if Mixxx is built without vinyl control
+            connection.trigger();
+            VestaxVCI380.connections.push(connection);
+        }
+    }
+
     // turning off all LEDs
     VestaxVCI380.setAllLEDs(false);
 
@@ -293,25 +307,36 @@ VestaxVCI380.onPlay = function(channel, _control, value, _status, group) {
 // WHEELS
 ////
 
+VestaxVCI380.JOG_TICKS_PER_TURN = 3600; // measured ticks for one wheel turn
+VestaxVCI380.JOG_SHIFT_FACTOR = 10;     // SHIFT: scratch 10x faster
+
 VestaxVCI380.isScratching=[false, false];
+VestaxVCI380.rpm=[33+1/3, 33+1/3];
+VestaxVCI380.scratchTpr = [VestaxVCI380.JOG_TICKS_PER_TURN, VestaxVCI380.JOG_TICKS_PER_TURN];
+
+// Turntable speed set for the deck in Preferences > Vinyl Control (33.33 or 45 RPM),
+// also used by the spinning disc of the skin. 33 1/3 if Mixxx has no vinyl control.
+VestaxVCI380.vinylRPM = function(deck) {
+    const rpm = engine.getValue(`[Channel${deck}]`, "vinylcontrol_speed_type");
+    return (rpm > 0) ? rpm : 33+1/3;
+};
+
+VestaxVCI380.startScratch = function(deck) {
+    const alpha = 1.0/8;
+    const beta = alpha/32;
+    engine.scratchEnable(deck, VestaxVCI380.scratchTpr[deck-1], VestaxVCI380.rpm[deck-1], alpha, beta);
+};
+
 // The button that enables/disables scratching
 VestaxVCI380.wheelTouch = function(channel, _control, value, _status) {
+    const deck=VestaxVCI380.getDeck(channel);
     if (value === 0x7F) {
-
-        // select range according to shift status (shift=fast moving)
-        let tpr;
-        if (VestaxVCI380.shiftStatus) {
-            tpr=353;  // 10x speed
-        } else {
-            tpr=3533; // 1X speed, measured ticks for one wheel turn
-        }
-        const alpha = 1.0/8;
-        const beta = alpha/32;
-        engine.scratchEnable(VestaxVCI380.getDeck(channel), tpr, 33+1/3, alpha, beta);
-        VestaxVCI380.isScratching[VestaxVCI380.getDeck(channel)-1]=true;
+        VestaxVCI380.scratchTpr[deck-1]=VestaxVCI380.shiftStatus ? Math.round(VestaxVCI380.JOG_TICKS_PER_TURN / VestaxVCI380.JOG_SHIFT_FACTOR) : VestaxVCI380.JOG_TICKS_PER_TURN; // SHIFT=fast speed
+        VestaxVCI380.startScratch(deck);
+        VestaxVCI380.isScratching[deck-1]=true;
     } else {    // If button up
-        engine.scratchDisable(VestaxVCI380.getDeck(channel));
-        VestaxVCI380.isScratching[VestaxVCI380.getDeck(channel)-1]=false;
+        engine.scratchDisable(deck);
+        VestaxVCI380.isScratching[deck-1]=false;
     }
 };
 // The wheel that actually controls the scratching
@@ -1150,8 +1175,8 @@ VestaxVCI380.dimColor = function(color) {
     return color & ~0x08;
 };
 
-// background color of the pads of a deck: the color of the loaded track, dimmed,
-// or the given color if the track has none (track_color = -1)
+// background color of the pads of a deck, dimmed: the color chosen in the setting,
+// or the color of the loaded track, or the fallback if the track has none (track_color = -1)
 VestaxVCI380.trackPadColorDim = function(deck, setting, fallback) {
     return VestaxVCI380.dimColor(VestaxVCI380.settingPadColor(setting, engine.getValue(`[Channel${deck}]`, "track_color"), fallback));
 };
@@ -1246,9 +1271,9 @@ VestaxVCI380.setPadColorSplash = function(deck) {
 VestaxVCI380.updatePlayposition = function(value, group, _control) {
     const deck=VestaxVCI380.getDeckFromGroup(group);
     const duration=engine.getValue(group, "duration");
-    const tickPerSecond=71.11111;
+    const tickPerSecond=128 * VestaxVCI380.rpm[deck-1] / 60; // 128 LED positions
     const elapsedticks=duration*value*tickPerSecond;
-    VestaxVCI380.setWheelLED(deck, Math.floor(elapsedticks%128));
+    VestaxVCI380.setWheelLED(deck, Math.floor(elapsedticks%128) & 0x7E); // the LED only changes on even values
 };
 
 
